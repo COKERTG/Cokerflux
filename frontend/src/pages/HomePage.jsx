@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, ArrowDown } from 'lucide-react'
 import { useCurrency } from '../context/CurrencyContext'
 import { products as allProducts } from '../data/products'
-import hero from '../assets/image.webp'
+import hero from '../assets/hero.webp'
 
 const products = allProducts.slice(0, 3)
 
@@ -16,10 +16,12 @@ export default function HomePage() {
     <main className="bg-background text-primary">
 
       {/* ── Hero ── */}
-      <section
-        className="relative min-h-[calc(90vh-98px)] flex flex-col justify-center   pb-16 px-10"
-        style={{ backgroundImage: `url(${hero})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-      >
+      <section className="relative min-h-[calc(90vh-98px)] flex flex-col justify-center pb-16 px-10">
+        <img
+          src={hero}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover object-top"
+        />
         <div className="absolute inset-0 bg-background/55" />
 
         <div className="relative z-10 max-w-[680px]">

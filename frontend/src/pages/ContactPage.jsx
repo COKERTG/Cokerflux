@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 
 const socials = [
-  { label: 'Instagram', href: '#' },
-  { label: 'Twitter',   href: '#' },
-  { label: 'TikTok',    href: '#' },
+  { label: 'Instagram', handle: 'Coker_flux_original', href: 'https://www.instagram.com/Coker_flux_original' },
+  { label: 'Twitter', handle: '@Cokerfluxorigil', href: 'https://x.com/Cokerfluxorigil' },
+  { label: 'TikTok', handle: 'Cokerfluxoriginal', href: 'https://www.tiktok.com/@Cokerfluxoriginal' },
 ]
 
 export default function ContactPage() {
@@ -39,10 +39,10 @@ export default function ContactPage() {
           <div>
             <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-4">Email</p>
             <a
-              href="mailto:hello@cokerflux.com"
+              href="mailto:cokerflux.ng@gmail.com"
               className="text-[15px] tracking-[0.04em] text-primary/80 hover:text-primary transition-colors duration-200 border-b border-primary/15 pb-px"
             >
-              hello@cokerflux.com
+              cokerflux.ng@gmail.com
             </a>
           </div>
 
@@ -58,10 +58,12 @@ export default function ContactPage() {
                 <a
                   key={s.label}
                   href={s.href}
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex items-center justify-between group max-w-[220px] py-2 border-b border-primary/8 hover:border-primary/25 transition-colors duration-200"
                 >
                   <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-muted group-hover:text-primary transition-colors duration-200">
-                    {s.label}
+                    {s.label} / {s.handle}
                   </span>
                   <ArrowRight size={11} strokeWidth={1.8} className="text-primary/20 group-hover:text-primary transition-colors duration-200" />
                 </a>

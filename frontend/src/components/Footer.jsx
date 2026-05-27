@@ -15,7 +15,15 @@ const cols = [
   },
 ]
 
+const socials = [
+  { label: 'Instagram', href: 'https://www.instagram.com/Coker_flux_original' },
+  { label: 'Twitter', href: 'https://x.com/Cokerfluxorigil' },
+  { label: 'TikTok', href: 'https://www.tiktok.com/@Cokerfluxoriginal' },
+]
+
 export default function Footer() {
+  const year = new Date().getFullYear()
+
   return (
     <footer className="bg-[#1a1a1a]">
       <div className="grid grid-cols-4 border-t-2 border-b-2 border-primary">
@@ -50,12 +58,12 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="flex justify-between items-center px-6 py-5">
         <p className="text-[11px] text-[#444] tracking-[0.1em] uppercase">
-          © 2025 Cokerflux. All rights reserved.
+          © {year} Cokerflux. All rights reserved.
         </p>
         <div className="flex gap-6">
-          {['Instagram', 'Twitter', 'TikTok'].map((s) => (
-            <a key={s} href="#" className="text-[11px] text-[#444] uppercase tracking-[0.12em] hover:text-primary transition-colors">
-              {s}
+          {socials.map((s) => (
+            <a key={s.label} href={s.href} target="_blank" rel="noreferrer" className="text-[11px] text-[#444] uppercase tracking-[0.12em] hover:text-primary transition-colors">
+              {s.label}
             </a>
           ))}
         </div>
