@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #F4F4F4;
+  --color-text: #F4F4F4;
+  --color-text-dark: #232323;
+  --color-background: #232323;
+  --color-surface: #2e2e2e;
+  --color-muted: #888888;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'Barlow Condensed', sans-serif;
+}
+
+body {
+  background-color: #232323;
+  color: #F4F4F4;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-ticker {
+  animation: ticker 18s linear infinite;
+}
