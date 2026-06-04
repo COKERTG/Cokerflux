@@ -1,10 +1,9 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ArrowDown } from 'lucide-react'
+import { ArrowRight, ArrowDown, Loader2 } from 'lucide-react'
 import { useCurrency } from '../context/CurrencyContext'
-import { products as allProducts } from '../data/products'
+import { api } from '../lib/api'
 import hero from '../assets/hero.webp'
-
-const products = allProducts.slice(0, 3)
 
 const marqueeItems = [
   'New Drop SS25', 'Built Different', 'Limited Stock', 'Free Shipping ₦50K+', 'Cokerflux',
@@ -12,6 +11,18 @@ const marqueeItems = [
 
 export default function HomePage() {
   const { formatPrice } = useCurrency()
+
+  const [products, setProducts] = useState([])
+  const [loading, setLoading]   = useState(true)
+
+  useEffect(() => {
+    api.getProducts()
+      .then(res => res.json())
+      .then(data => setProducts((data.products || []).slice(0, 3)))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <main className="bg-background text-primary">
 
@@ -79,37 +90,47 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-primary/8">
-          {products.map((p) => (
-            <Link to={`/product/${p.id}`} key={p.id} className="group bg-background hover:bg-surface transition-colors duration-300">
-              <div className="aspect-[3/4] bg-surface relative overflow-hidden">
-                <img
-                  src={p.image}
-                  alt={p.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-background/10 group-hover:bg-background/0 transition-colors duration-300" />
-                {p.tag && (
-                  <span className="absolute top-4 left-4 text-[9px] font-bold tracking-[0.25em] uppercase bg-primary text-text-dark px-2 py-[3px]">
-                    {p.tag}
-                  </span>
-                )}
-                <p className="absolute bottom-4 left-4 text-[10px] tracking-[0.15em] text-primary uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  {p.category}
-                </p>
-              </div>
-              <div className="px-5 py-4 flex items-center justify-between border-t border-primary/8">
-                <div>
-                  <p className="text-[12px] font-bold tracking-[0.08em] uppercase mb-0.5">{p.name}</p>
-                  <p className="text-[12px] text-muted tracking-[0.04em]">{formatPrice(p.price)}</p>
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <Loader2 size={24} className="animate-spin text-muted" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="flex items-center justify-center py-24">
+            <p className="text-[12px] font-bold tracking-[0.15em] uppercase text-muted">Coming soon</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-primary/8">
+            {products.map((p) => (
+              <Link to={`/product/${p.id}`} key={p.id} className="group bg-background hover:bg-surface transition-colors duration-300">
+                <div className="aspect-[3/4] bg-surface relative overflow-hidden">
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-background/10 group-hover:bg-background/0 transition-colors duration-300" />
+                  {p.tag && (
+                    <span className="absolute top-4 left-4 text-[9px] font-bold tracking-[0.25em] uppercase bg-primary text-text-dark px-2 py-[3px]">
+                      {p.tag}
+                    </span>
+                  )}
+                  <p className="absolute bottom-4 left-4 text-[10px] tracking-[0.15em] text-primary uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {p.category}
+                  </p>
                 </div>
-                <span className="w-8 h-8 border border-primary/15 flex items-center justify-center text-primary/30 group-hover:text-primary group-hover:border-primary/50 transition-all duration-200">
-                  <ArrowRight size={13} strokeWidth={1.5} />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+                <div className="px-5 py-4 flex items-center justify-between border-t border-primary/8">
+                  <div>
+                    <p className="text-[12px] font-bold tracking-[0.08em] uppercase mb-0.5">{p.name}</p>
+                    <p className="text-[12px] text-muted tracking-[0.04em]">{formatPrice(p.price)}</p>
+                  </div>
+                  <span className="w-8 h-8 border border-primary/15 flex items-center justify-center text-primary/30 group-hover:text-primary group-hover:border-primary/50 transition-all duration-200">
+                    <ArrowRight size={13} strokeWidth={1.5} />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── Brand statement ── */}

@@ -31,20 +31,3 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
-
-    def to_dict(self, request=None):
-        image_url = self.image.url if self.image else ''
-        if request is not None and image_url:
-            image_url = request.build_absolute_uri(image_url)
-
-        return {
-            'id': self.id,
-            'name': self.name,
-            'price': self.price,
-            'tag': self.tag,
-            'category': self.category,
-            'image': image_url,
-            'description': self.description,
-            'sizes': self.sizes,
-            'details': self.details,
-        }

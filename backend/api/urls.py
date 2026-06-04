@@ -1,10 +1,9 @@
 from django.urls import path
 
-from . import views
+from .views import DashboardAPIView, HealthAPIView
 
 
 urlpatterns = [
-    path('health/', views.health, name='health'),
-    path('products/', views.products, name='products'),
-    path('products/<int:product_id>/', views.product_detail, name='product_detail'),
+    path('health/',    HealthAPIView.as_view(),    name='health'),
+    path('dashboard/', DashboardAPIView.as_view(), name='dashboard'),
 ]

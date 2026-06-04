@@ -1,22 +1,73 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Minus, Plus } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Minus, Plus, Loader2 } from 'lucide-react'
 import { useCurrency } from '../context/CurrencyContext'
-import { products } from '../data/products'
+import { useCart } from '../context/CartContext'
+import { api } from '../lib/api'
 
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { formatPrice } = useCurrency()
+  const { addItem } = useCart()
 
-  const product = products.find(p => p.id === Number(id))
-
+  const [product, setProduct]       = useState(null)
+  const [related, setRelated]       = useState([])
+  const [loading, setLoading]       = useState(true)
+  const [error, setError]           = useState(null)
   const [selectedSize, setSelectedSize] = useState(null)
-  const [qty, setQty]                   = useState(1)
-  const [added, setAdded]               = useState(false)
-  const [sizeError, setSizeError]       = useState(false)
+  const [qty, setQty]               = useState(1)
+  const [added, setAdded]           = useState(false)
+  const [sizeError, setSizeError]   = useState(false)
 
-  if (!product) {
+  useEffect(() => {
+    setLoading(true)
+    setError(null)
+    setSelectedSize(null)
+    setQty(1)
+    setAdded(false)
+    setSizeError(false)
+
+    api.getProduct(id)
+      .then(res => {
+        if (!res.ok) throw new Error('Product not found')
+        return res.json()
+      })
+      .then(data => {
+        setProduct(data.product)
+        // Fetch all products to find related ones in the same category
+        return api.getProducts()
+      })
+      .then(res => res.json())
+      .then(data => {
+        const all = data.products || []
+        setRelated(all.filter(p => p.category === product?.category && p.id !== Number(id)).slice(0, 3))
+      })
+      .catch(err => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [id])
+
+  // Update related products when the main product loads
+  useEffect(() => {
+    if (!product) return
+    api.getProducts()
+      .then(res => res.json())
+      .then(data => {
+        const all = data.products || []
+        setRelated(all.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3))
+      })
+      .catch(() => {})
+  }, [product])
+
+  if (loading) {
+    return (
+      <main className="bg-background text-primary min-h-screen flex items-center justify-center">
+        <Loader2 size={28} className="animate-spin text-muted" />
+      </main>
+    )
+  }
+
+  if (error || !product) {
     return (
       <main className="bg-background text-primary min-h-screen flex flex-col items-center justify-center gap-4">
         <p className="font-display text-[40px] tracking-[0.04em]">PRODUCT NOT FOUND</p>
@@ -27,13 +78,18 @@ export default function ProductDetail() {
     )
   }
 
-  const related = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3)
-
   function handleAddToCart() {
     if (product.sizes.length > 1 && !selectedSize) {
       setSizeError(true)
       return
     }
+    // Build the cart item with a unique id per size variant
+    const cartProduct = {
+      ...product,
+      id: selectedSize ? `${product.id}-${selectedSize}` : product.id,
+      selectedSize: selectedSize || product.sizes[0] || 'One Size',
+    }
+    addItem(cartProduct, qty)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
   }

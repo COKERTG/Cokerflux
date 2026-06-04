@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Search, ShoppingBag, Menu, X } from 'lucide-react'
-import { useCurrency } from '../context/CurrencyContext'
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Search, ShoppingBag, Menu, X } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
+import { useCart } from '../context/CartContext';
+import CartModal from './CartModal';
+import SearchOverlay from './SearchOverlay';
 
 const ticker = [
   'New Drop SS25',
@@ -16,9 +19,12 @@ const rightLinks = [['/about', 'About'], ['/contact', 'Contact']]
 
 export default function Navbar() {
   const { pathname } = useLocation()
-  const [scrolled, setScrolled] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled,   setScrolled]   = useState(false)
+  const [menuOpen,   setMenuOpen]   = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const { currency, setCurrency } = useCurrency()
+  const { items } = useCart();
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -42,7 +48,7 @@ export default function Navbar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
 
-      {/* ── Ticker ── */}
+      {/* Ticker */}
       <div className="bg-primary text-text-dark overflow-hidden py-[10px]">
         <div className="flex gap-16 whitespace-nowrap animate-ticker">
           {[...ticker, ...ticker, ...ticker].map((t, i) => (
@@ -53,12 +59,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ── Main nav ── */}
+      {/* Main nav */}
       <nav className={`relative flex items-center justify-between px-10 border-b border-primary/15 transition-all duration-300
-        ${scrolled
-          ? 'bg-background/90 backdrop-blur-md h-[58px]'
-          : 'bg-background h-[68px]'
-        }`}
+        ${scrolled ? 'bg-background/90 backdrop-blur-md h-[58px]' : 'bg-background h-[68px]'}`}
       >
         {/* Left links — desktop */}
         <div className="hidden md:flex items-center gap-10 w-[220px]">
@@ -67,7 +70,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Logo — left on mobile, centered on desktop */}
+        {/* Logo */}
         <Link
           to="/"
           className="md:absolute md:left-1/2 md:-translate-x-1/2 hover:opacity-75 transition-opacity duration-200"
@@ -91,6 +94,7 @@ export default function Navbar() {
 
             <button
               aria-label="Search"
+              onClick={() => setSearchOpen(true)}
               className="text-muted hover:text-primary transition-colors duration-200"
             >
               <Search size={15} strokeWidth={1.6} />
@@ -99,10 +103,11 @@ export default function Navbar() {
             <button
               aria-label="Cart"
               className="relative text-muted hover:text-primary transition-colors duration-200"
+              onClick={() => setCartOpen(true)}
             >
               <ShoppingBag size={15} strokeWidth={1.6} />
               <span className="absolute -top-[6px] -right-[6px] w-[14px] h-[14px] bg-primary text-text-dark text-[8px] font-bold rounded-full flex items-center justify-center leading-none">
-                0
+                {items.reduce((sum, i) => sum + i.quantity, 0)}
               </span>
             </button>
           </div>
@@ -113,10 +118,11 @@ export default function Navbar() {
           <button
             aria-label="Cart"
             className="relative text-muted hover:text-primary transition-colors duration-200"
+            onClick={() => setCartOpen(true)}
           >
             <ShoppingBag size={17} strokeWidth={1.6} />
             <span className="absolute -top-[6px] -right-[6px] w-[14px] h-[14px] bg-primary text-text-dark text-[8px] font-bold rounded-full flex items-center justify-center leading-none">
-              0
+              {items.reduce((sum, i) => sum + i.quantity, 0)}
             </span>
           </button>
 
@@ -125,15 +131,12 @@ export default function Navbar() {
             onClick={() => setMenuOpen(o => !o)}
             className="text-primary transition-colors duration-200"
           >
-            {menuOpen
-              ? <X size={19} strokeWidth={1.6} />
-              : <Menu size={19} strokeWidth={1.6} />
-            }
+            {menuOpen ? <X size={19} strokeWidth={1.6} /> : <Menu size={19} strokeWidth={1.6} />}
           </button>
         </div>
       </nav>
 
-      {/* ── Mobile menu ── */}
+      {/* Mobile menu */}
       <div className={`md:hidden overflow-hidden transition-all duration-300 bg-background border-b border-primary/15
         ${menuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
@@ -151,7 +154,10 @@ export default function Navbar() {
         ))}
 
         <div className="px-10 py-5 flex items-center gap-5">
-          <button className="text-muted hover:text-primary transition-colors duration-200">
+          <button
+            onClick={() => { setMenuOpen(false); setSearchOpen(true) }}
+            className="text-muted hover:text-primary transition-colors duration-200"
+          >
             <Search size={17} strokeWidth={1.6} />
           </button>
           <button
@@ -162,6 +168,9 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+        <CartModal isOpen={cartOpen} onClose={() => setCartOpen(false)} />
 
     </header>
   )
