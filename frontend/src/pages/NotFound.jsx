@@ -3,12 +3,12 @@ import { ArrowRight } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <main className="bg-background text-primary min-h-[calc(100vh-98px)] flex flex-col items-center justify-center px-10 text-center">
+    <main className="bg-background text-primary min-h-[calc(100vh-88px)] md:min-h-[calc(100vh-98px)] flex flex-col items-center justify-center px-6 md:px-10 text-center">
       <p className="text-[10px] font-bold tracking-[0.35em] text-muted uppercase mb-4">Error</p>
-      <h1 className="font-display text-[120px] md:text-[180px] leading-none tracking-[0.02em] text-primary/10 mb-0">
+      <h1 className="font-display text-[90px] sm:text-[120px] md:text-[180px] leading-none tracking-[0.02em] text-primary/10 mb-0">
         404
       </h1>
-      <h2 className="font-display text-[32px] md:text-[48px] leading-none tracking-[0.04em] -mt-4 mb-6">
+      <h2 className="font-display text-[24px] sm:text-[32px] md:text-[48px] leading-none tracking-[0.04em] -mt-4 mb-6">
         PAGE NOT FOUND
       </h2>
       <p className="text-[14px] text-muted tracking-[0.03em] leading-relaxed max-w-[360px] mb-10">

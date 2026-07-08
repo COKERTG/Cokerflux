@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, ArrowDown, Loader2 } from 'lucide-react'
 import { useCurrency } from '../context/CurrencyContext'
-import { api } from '../lib/api'
+import { useProducts } from '../context/productContextValue'
 import hero from '../assets/hero.webp'
+import ProductImage from '../components/ProductImage'
 
 const marqueeItems = [
   'New Drop SS25', 'Built Different', 'Limited Stock', 'Free Shipping ₦50K+', 'Cokerflux',
@@ -11,23 +11,14 @@ const marqueeItems = [
 
 export default function HomePage() {
   const { formatPrice } = useCurrency()
-
-  const [products, setProducts] = useState([])
-  const [loading, setLoading]   = useState(true)
-
-  useEffect(() => {
-    api.getProducts()
-      .then(res => res.json())
-      .then(data => setProducts((data.products || []).slice(0, 3)))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+  const { products, loading } = useProducts()
+  const featuredProducts = products.slice(0, 3)
 
   return (
     <main className="bg-background text-primary">
 
       {/* ── Hero ── */}
-      <section className="relative min-h-[calc(90vh-98px)] flex flex-col justify-center pb-16 px-10">
+      <section className="relative min-h-[calc(90vh-88px)] md:min-h-[calc(90vh-98px)] flex flex-col justify-center pb-16 px-5 md:px-10">
         <img
           src={hero}
           alt=""
@@ -39,13 +30,13 @@ export default function HomePage() {
           <p className="text-[10px] font-bold tracking-[0.35em] text-primary/50 uppercase mb-4">
             Spring / Summer 2025
           </p>
-          <h1 className="font-display text-[96px] md:text-[128px] leading-[0.88] tracking-[0.02em] text-primary mb-10">
+          <h1 className="font-display text-[56px] sm:text-[80px] md:text-[128px] leading-[0.88] tracking-[0.02em] text-primary mb-8 md:mb-10">
             BUILT<br />DIFFERENT
           </h1>
-          <div className="flex items-center gap-7">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-7">
             <Link
               to="/shop"
-              className="inline-flex items-center gap-3 bg-primary text-text-dark px-8 py-3.5 text-[11px] font-bold tracking-[0.25em] uppercase hover:bg-primary/85 transition-colors duration-200"
+              className="inline-flex items-center gap-3 bg-primary text-text-dark px-6 md:px-8 py-3 md:py-3.5 text-[11px] font-bold tracking-[0.25em] uppercase hover:bg-primary/85 transition-colors duration-200"
             >
               Shop SS25 <ArrowRight size={12} strokeWidth={2.2} />
             </Link>
@@ -58,7 +49,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="absolute bottom-7 right-10 flex items-center gap-2 text-primary/25 z-10">
+        <div className="absolute bottom-7 right-5 md:right-10 flex items-center gap-2 text-primary/25 z-10">
           <span className="text-[9px] tracking-[0.2em] uppercase font-bold">Scroll</span>
           <ArrowDown size={11} strokeWidth={1.5} />
         </div>
@@ -76,11 +67,11 @@ export default function HomePage() {
       </div>
 
       {/* ── The Drop ── */}
-      <section className="px-10 py-20 border-b border-primary/10">
-        <div className="flex items-end justify-between mb-10">
+      <section className="px-4 md:px-10 py-12 md:py-20 border-b border-primary/10">
+        <div className="flex items-end justify-between mb-8 md:mb-10">
           <div>
             <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-2">SS25 Collection</p>
-            <h2 className="font-display text-[52px] leading-none tracking-[0.04em]">THE DROP</h2>
+            <h2 className="font-display text-[36px] md:text-[52px] leading-none tracking-[0.04em]">THE DROP</h2>
           </div>
           <Link
             to="/shop"
@@ -94,18 +85,19 @@ export default function HomePage() {
           <div className="flex items-center justify-center py-24">
             <Loader2 size={24} className="animate-spin text-muted" />
           </div>
-        ) : products.length === 0 ? (
+        ) : featuredProducts.length === 0 ? (
           <div className="flex items-center justify-center py-24">
             <p className="text-[12px] font-bold tracking-[0.15em] uppercase text-muted">Coming soon</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-primary/8">
-            {products.map((p) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-px bg-primary/8">
+            {featuredProducts.map((p) => (
               <Link to={`/product/${p.id}`} key={p.id} className="group bg-background hover:bg-surface transition-colors duration-300">
-                <div className="aspect-[3/4] bg-surface relative overflow-hidden">
-                  <img
+                <div className="aspect-[3/4] relative overflow-hidden">
+                  <ProductImage
                     src={p.image}
                     alt={p.name}
+                    wrapperClassName="w-full h-full"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-background/10 group-hover:bg-background/0 transition-colors duration-300" />
@@ -118,7 +110,7 @@ export default function HomePage() {
                     {p.category}
                   </p>
                 </div>
-                <div className="px-5 py-4 flex items-center justify-between border-t border-primary/8">
+                <div className="px-4 md:px-5 py-4 flex items-center justify-between border-t border-primary/8">
                   <div>
                     <p className="text-[12px] font-bold tracking-[0.08em] uppercase mb-0.5">{p.name}</p>
                     <p className="text-[12px] text-muted tracking-[0.04em]">{formatPrice(p.price)}</p>
@@ -131,15 +123,23 @@ export default function HomePage() {
             ))}
           </div>
         )}
+
+        {/* Mobile "View All" link */}
+        <Link
+          to="/shop"
+          className="md:hidden flex items-center justify-center gap-2 mt-6 text-[11px] font-bold tracking-[0.2em] uppercase text-muted hover:text-primary transition-colors duration-200 border border-primary/15 py-3"
+        >
+          View All <ArrowRight size={11} strokeWidth={2} />
+        </Link>
       </section>
 
       {/* ── Brand statement ── */}
-      <section className="px-10 py-24 border-b border-primary/10">
+      <section className="px-5 md:px-10 py-16 md:py-24 border-b border-primary/10">
         <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-6">The Ethos</p>
-        <h2 className="font-display text-[64px] md:text-[96px] leading-[0.9] tracking-[0.02em] max-w-[860px] mb-10">
+        <h2 className="font-display text-[36px] sm:text-[52px] md:text-[96px] leading-[0.9] tracking-[0.02em] max-w-[860px] mb-8 md:mb-10">
           NOT MADE FOR EVERYONE. MADE FOR THE ONES WHO MOVE.
         </h2>
-        <p className="text-[14px] text-muted leading-relaxed tracking-[0.03em] max-w-[420px] mb-10">
+        <p className="text-[14px] text-muted leading-relaxed tracking-[0.03em] max-w-[420px] mb-8 md:mb-10">
           Cokerflux isn't a brand — it's a frequency. Worn by those who don't ask for permission, built for the culture that sets the tone.
         </p>
         <Link
@@ -153,3 +153,4 @@ export default function HomePage() {
     </main>
   )
 }
+

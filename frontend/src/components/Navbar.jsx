@@ -32,6 +32,11 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
   const NavLink = ({ path, label }) => (
     <Link
       to={path}
@@ -49,10 +54,10 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50">
 
       {/* Ticker */}
-      <div className="bg-primary text-text-dark overflow-hidden py-[10px]">
+      <div className="bg-primary text-text-dark overflow-hidden py-[8px] md:py-[10px]">
         <div className="flex gap-16 whitespace-nowrap animate-ticker">
           {[...ticker, ...ticker, ...ticker].map((t, i) => (
-            <span key={i} className="text-[10px] font-bold tracking-[0.28em] uppercase">
+            <span key={i} className="text-[9px] md:text-[10px] font-bold tracking-[0.28em] uppercase">
               {t} <span className="opacity-25 mx-2">◆</span>
             </span>
           ))}
@@ -60,8 +65,8 @@ export default function Navbar() {
       </div>
 
       {/* Main nav */}
-      <nav className={`relative flex items-center justify-between px-10 border-b border-primary/15 transition-all duration-300
-        ${scrolled ? 'bg-background/90 backdrop-blur-md h-[58px]' : 'bg-background h-[68px]'}`}
+      <nav className={`relative flex items-center justify-between px-4 md:px-10 border-b border-primary/15 transition-all duration-300
+        ${scrolled ? 'bg-background/90 backdrop-blur-md h-[54px] md:h-[58px]' : 'bg-background h-[58px] md:h-[68px]'}`}
       >
         {/* Left links — desktop */}
         <div className="hidden md:flex items-center gap-10 w-[220px]">
@@ -75,7 +80,8 @@ export default function Navbar() {
           to="/"
           className="md:absolute md:left-1/2 md:-translate-x-1/2 hover:opacity-75 transition-opacity duration-200"
         >
-          <img src="/logo.webp" alt="Cokerflux" className="h-[32px] w-auto" />
+          <img src="/logo.webp" alt="Cokerflux" className="hidden md:block h-[32px] w-auto" />
+          <img src="/cokerflux.webp" alt="Cokerflux" className="block md:hidden h-[28px] w-auto object-contain" />
         </Link>
 
         {/* Right links + icons — desktop */}
@@ -114,7 +120,15 @@ export default function Navbar() {
         </div>
 
         {/* Mobile — cart + hamburger */}
-        <div className="flex md:hidden items-center gap-5 ml-auto">
+        <div className="flex md:hidden items-center gap-4 ml-auto">
+          <button
+            aria-label="Search"
+            onClick={() => setSearchOpen(true)}
+            className="text-muted hover:text-primary transition-colors duration-200"
+          >
+            <Search size={16} strokeWidth={1.6} />
+          </button>
+
           <button
             aria-label="Cart"
             className="relative text-muted hover:text-primary transition-colors duration-200"
@@ -145,7 +159,7 @@ export default function Navbar() {
             key={path}
             to={path}
             onClick={() => setMenuOpen(false)}
-            className={`flex items-center justify-between px-10 py-4 text-[11px] font-bold tracking-[0.22em] uppercase border-b border-surface/50 transition-colors duration-200
+            className={`flex items-center justify-between px-5 md:px-10 py-4 text-[11px] font-bold tracking-[0.22em] uppercase border-b border-surface/50 transition-colors duration-200
               ${pathname === path ? 'text-primary' : 'text-muted'}`}
           >
             {label}
@@ -153,13 +167,7 @@ export default function Navbar() {
           </Link>
         ))}
 
-        <div className="px-10 py-5 flex items-center gap-5">
-          <button
-            onClick={() => { setMenuOpen(false); setSearchOpen(true) }}
-            className="text-muted hover:text-primary transition-colors duration-200"
-          >
-            <Search size={17} strokeWidth={1.6} />
-          </button>
+        <div className="px-5 md:px-10 py-5 flex items-center gap-5">
           <button
             onClick={() => setCurrency(c => c === 'NGN' ? 'GHS' : 'NGN')}
             className="text-[9px] font-bold tracking-[0.18em] uppercase border border-primary/25 px-2 py-1 text-muted hover:text-primary hover:border-primary/50 transition-all duration-200"

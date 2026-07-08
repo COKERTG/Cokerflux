@@ -39,9 +39,7 @@ export default function AdminLogin() {
 
       {/* Left — brand panel */}
       <div className="hidden md:flex flex-col justify-between w-[420px] shrink-0 border-r border-primary/10 p-12">
-        {/* <p className="font-display text-[26px] tracking-[0.2em]">COKERFLUX</p>
-         */}
-         <img src='/cokerflux.webp' alt="Cokerflux" className="w-10 h-10 object-cover" />
+         <img src='/logo.webp' alt="Cokerflux" className="h-8 w-auto object-contain self-start" />
         <div>
           <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-4">Admin Access</p>
           <h2 className="font-display text-[52px] leading-[0.9] tracking-[0.02em]">
@@ -56,6 +54,10 @@ export default function AdminLogin() {
       {/* Right — login form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-[380px]">
+          {/* Logo on mobile */}
+          <div className="md:hidden mb-8">
+            <img src="/cokerflux.webp" alt="Cokerflux" className="w-10 h-10 object-contain" />
+          </div>
           <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-8">Sign In</p>
 
           {justReset && (

@@ -2,12 +2,44 @@ import json
 
 from rest_framework import serializers
 
-from .models import Product
+from .models import Category, Product, ProductImage
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProductImage
+        fields = ('id', 'url', 'order', 'is_primary')
+
+    def get_url(self, obj):
+        if not obj.image:
+            return ''
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    product_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = ('id', 'name', 'is_active', 'created_at', 'product_count')
+        read_only_fields = ('id', 'created_at', 'product_count')
+
+    def get_product_count(self, obj):
+        return Product.objects.filter(category=obj.name).count()
+
+    def validate_name(self, value):
+        return value.strip()
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    """Read serializer — returns absolute image URLs."""
-    image = serializers.SerializerMethodField()
+    """Read serializer. Returns `images[]` plus a backward-compat `image` (primary URL)."""
+    images = ProductImageSerializer(many=True, read_only=True)
+    image  = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -18,6 +50,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'tag',
             'category',
             'image',
+            'images',
             'description',
             'sizes',
             'details',
@@ -27,17 +60,18 @@ class ProductSerializer(serializers.ModelSerializer):
         )
 
     def get_image(self, product):
-        if not product.image:
+        primary = product.images.filter(is_primary=True).first() or product.images.first()
+        if not primary:
             return ''
         request = self.context.get('request')
-        if request is None:
-            return product.image.url
-        return request.build_absolute_uri(product.image.url)
+        if request:
+            return request.build_absolute_uri(primary.image.url)
+        return primary.image.url
 
 
 class ProductWriteSerializer(serializers.ModelSerializer):
     """Write serializer — used for POST / PUT / PATCH.
-    Accepts multipart/form-data so image uploads work.
+    Images are managed separately via /products/<id>/images/ endpoints.
     sizes and details can be sent as JSON strings when using multipart.
     """
 
@@ -48,7 +82,6 @@ class ProductWriteSerializer(serializers.ModelSerializer):
             'price',
             'tag',
             'category',
-            'image',
             'description',
             'sizes',
             'details',

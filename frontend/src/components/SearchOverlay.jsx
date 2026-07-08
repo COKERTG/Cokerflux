@@ -1,25 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { X, Search } from 'lucide-react'
-import { api } from '../lib/api'
 import { useCurrency } from '../context/CurrencyContext'
+import { useProducts } from '../context/productContextValue'
+import ProductImage from './ProductImage'
 
 export default function SearchOverlay({ open, onClose }) {
-  const [query,    setQuery]    = useState('')
-  const [products, setProducts] = useState([])
-  const [loading,  setLoading]  = useState(false)
+  const [query, setQuery] = useState('')
   const inputRef = useRef(null)
   const { formatPrice } = useCurrency()
-
-  useEffect(() => {
-    if (!open) return
-    setLoading(true)
-    api.getProducts()
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => setProducts(d.products || []))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [open])
+  const { products, loading } = useProducts()
 
   useEffect(() => {
     if (open) {
@@ -95,10 +85,11 @@ export default function SearchOverlay({ open, onClose }) {
                 onClick={onClose}
                 className="flex items-center gap-5 py-4 -mx-2 px-2 group hover:bg-surface/40 transition-colors duration-150"
               >
-                <div className="w-14 h-14 bg-surface shrink-0 overflow-hidden">
-                  <img
+                <div className="w-14 h-14 shrink-0 overflow-hidden">
+                  <ProductImage
                     src={p.image}
                     alt={p.name}
+                    wrapperClassName="w-full h-full"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>

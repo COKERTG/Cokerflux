@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-route
 import { CurrencyProvider } from './context/CurrencyContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext'
+import { ProductProvider } from './context/ProductContext'
 import SizingGuide from './pages/SizingGuide';
 import FAQ from './pages/FAQ';
 import Terms from './pages/Terms';
@@ -18,6 +19,7 @@ import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductForm from './pages/admin/AdminProductForm'
+import AdminCategories from './pages/admin/AdminCategories'
 import AdminStaff from './pages/admin/AdminStaff'
 import ForgotPassword from './pages/admin/ForgotPassword'
 import ResetPassword from './pages/admin/ResetPassword'
@@ -50,6 +52,7 @@ function AppRoutes() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="products/new" element={<AdminProductForm />} />
           <Route path="products/:id/edit" element={<AdminProductForm />} />
+          <Route path="categories" element={<ProtectedRoute managerOnly><AdminCategories /></ProtectedRoute>} />
           <Route path="staff" element={<ProtectedRoute managerOnly><AdminStaff /></ProtectedRoute>} />
         </Route>
       </Routes>
@@ -65,10 +68,10 @@ function AppRoutes() {
   }
 
   return (
-    <>
+    <ProductProvider>
       <ScrollToTop />
       <Navbar />
-      <div className="pt-[98px]">
+      <div className="pt-[88px] md:pt-[98px]">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/shop" element={<Shop />} />
@@ -83,7 +86,7 @@ function AppRoutes() {
         </Routes>
         <Footer />
       </div>
-    </>
+    </ProductProvider>
   )
 }
 

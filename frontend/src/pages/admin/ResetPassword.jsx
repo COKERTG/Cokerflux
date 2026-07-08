@@ -61,7 +61,7 @@ export default function ResetPassword() {
 
       {/* Left — brand panel */}
       <div className="hidden md:flex flex-col justify-between w-[420px] shrink-0 border-r border-primary/10 p-12">
-        <img src='/cokerflux.webp' alt="Cokerflux" className="w-10 h-10 object-cover" />
+        <img src='/logo.webp' alt="Cokerflux" className="h-8 w-auto object-contain self-start" />
         <div>
           <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-4">Account Recovery</p>
           <h2 className="font-display text-[52px] leading-[0.9] tracking-[0.02em]">
@@ -76,6 +76,10 @@ export default function ResetPassword() {
       {/* Right — form */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-[380px]">
+          {/* Logo on mobile */}
+          <div className="md:hidden mb-8">
+            <img src="/cokerflux.webp" alt="Cokerflux" className="w-10 h-10 object-contain" />
+          </div>
           <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-8">New Password</p>
 
           {error && (

@@ -8,13 +8,21 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const tokens = getTokens()
-    if (!tokens?.access) { setLoading(false); return }
-    api.profile()
-      .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => setUser(d.user))
-      .catch(() => clearTokens())
-      .finally(() => setLoading(false))
+    async function loadProfile() {
+      const tokens = getTokens()
+      if (!tokens?.access) { setLoading(false); return }
+      try {
+        const r = await api.profile()
+        if (!r.ok) throw new Error()
+        const d = await r.json()
+        setUser(d.user)
+      } catch {
+        clearTokens()
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadProfile()
   }, [])
 
   async function login(username, password) {

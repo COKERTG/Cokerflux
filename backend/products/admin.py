@@ -1,10 +1,24 @@
 from django.contrib import admin
 
-from .models import Product
+from .models import Category, Product, ProductImage
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active', 'created_at')
+    list_editable = ('is_active',)
+    search_fields = ('name',)
+
+
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 1
+    fields = ('image', 'order', 'is_primary')
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    inlines = [ProductImageInline]
     list_display = ('name', 'category', 'price', 'tag', 'is_active', 'updated_at')
     list_filter = ('category', 'tag', 'is_active')
     search_fields = ('name', 'description')

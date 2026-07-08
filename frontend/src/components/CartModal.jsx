@@ -78,7 +78,7 @@ export default function CartModal({ isOpen, onClose }) {
 
       {/* Slide-in panel */}
       <div
-        className={`relative w-full max-w-[420px] bg-background border-l border-primary/10 h-full flex flex-col transition-transform duration-300 ease-out ${visible ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`relative w-full max-w-[100vw] sm:max-w-[420px] bg-background border-l border-primary/10 h-full flex flex-col transition-transform duration-300 ease-out ${visible ? 'translate-x-0' : 'translate-x-full'}`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

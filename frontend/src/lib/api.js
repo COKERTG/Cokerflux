@@ -42,18 +42,38 @@ async function req(path, opts = {}) {
   return res
 }
 
+function withQuery(path, params) {
+  if (!params) return path
+  const qs = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') qs.set(key, value)
+  })
+  const query = qs.toString()
+  return query ? `${path}?${query}` : path
+}
+
 export const api = {
   getDashboard:  ()           => req('/dashboard/'),
+  sendContactMessage: (data)  => fetch(`${BASE}/contact/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
 
   login:         (u, p)       => fetch(`${BASE}/users/login/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p }) }),
   logout:        (refresh)    => req('/users/logout/', { method: 'POST', body: JSON.stringify({ refresh }) }),
   profile:       ()           => req('/users/profile/'),
 
-  getProducts:   ()           => req('/products/'),
+  getProducts:   (params)     => req(withQuery('/products/', params)),
   getProduct:    (id)         => req(`/products/${id}/`),
   createProduct: (fd)         => req('/products/', { method: 'POST', body: fd }),
   updateProduct: (id, fd)     => req(`/products/${id}/`, { method: 'PATCH', body: fd }),
   deleteProduct: (id)         => req(`/products/${id}/`, { method: 'DELETE' }),
+
+  addProductImages:  (id, fd)         => req(`/products/${id}/images/`, { method: 'POST', body: fd }),
+  deleteProductImage:(id, imageId)    => req(`/products/${id}/images/${imageId}/`, { method: 'DELETE' }),
+  setPrimaryImage:   (id, imageId)    => req(`/products/${id}/images/${imageId}/`, { method: 'PATCH' }),
+
+  getCategories:    ()           => req('/products/categories/'),
+  createCategory:   (data)       => req('/products/categories/', { method: 'POST', body: JSON.stringify(data) }),
+  updateCategory:   (id, data)   => req(`/products/categories/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteCategory:   (id)         => req(`/products/categories/${id}/`, { method: 'DELETE' }),
 
   getStaff:      ()                => req('/users/staff/'),
   updateStaff:   (id, data)        => req(`/users/staff/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),

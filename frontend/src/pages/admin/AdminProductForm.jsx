@@ -1,47 +1,100 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Plus, X, Upload } from 'lucide-react'
+import { ArrowLeft, Crown, Plus, Trash2, Upload, X } from 'lucide-react'
 import { api } from '../../lib/api'
 
-const SIZES_ALL  = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size']
-const CATEGORIES = ['Hoodies', 'Tees', 'Accessories']
-const TAGS       = ['', 'New', 'SS25', 'Limited']
-
-const empty = { name: '', price: '', category: 'Hoodies', tag: '', description: '', sizes: [], details: [], is_active: true }
+const SIZES_ALL = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'One Size']
+const TAGS      = ['', 'New', 'SS25', 'Limited']
+const MAX_IMGS  = 5
 
 export default function AdminProductForm() {
-  const { id }     = useParams()
-  const navigate   = useNavigate()
-  const isEdit     = !!id
+  const { id }   = useParams()
+  const navigate = useNavigate()
+  const isEdit   = !!id
+  const fileRef  = useRef(null)
 
-  const [form,      setForm]      = useState(empty)
-  const [image,     setImage]     = useState(null)   // File
-  const [preview,   setPreview]   = useState(null)   // URL string
+  const [categories, setCategories] = useState([])
+  const [form,      setForm]      = useState({ name: '', price: '', category: '', tag: '', description: '', sizes: [], details: [], is_active: true })
   const [detail,    setDetail]    = useState('')
   const [loading,   setLoading]   = useState(false)
-  const [fetching,  setFetching]  = useState(isEdit)
+  const [fetching,  setFetching]  = useState(true)
   const [errors,    setErrors]    = useState({})
 
+  // existing images from API (edit mode)
+  const [existingImgs, setExistingImgs] = useState([])
+  // new files selected by user, not yet uploaded
+  const [newFiles, setNewFiles] = useState([])   // [{file, preview}]
+
   useEffect(() => {
-    if (!isEdit) return
-    api.getProduct(id)
-      .then(r => r.json())
-      .then(d => {
-        const p = d.product
-        if (p) {
-          setForm({ name: p.name, price: p.price, category: p.category, tag: p.tag || '', description: p.description, sizes: p.sizes || [], details: p.details || [], is_active: p.is_active })
-          if (p.image) setPreview(p.image)
+    async function load() {
+      setFetching(true)
+      try {
+        const catRes  = await api.getCategories()
+        const catData = await catRes.json()
+        const cats    = catData.categories || []
+        setCategories(cats)
+
+        if (isEdit) {
+          const res  = await api.getProduct(id)
+          const data = await res.json()
+          const p    = data.product
+          if (p) {
+            setForm({ name: p.name, price: p.price, category: p.category, tag: p.tag || '', description: p.description, sizes: p.sizes || [], details: p.details || [], is_active: p.is_active })
+            setExistingImgs(p.images || [])
+          }
+        } else {
+          setForm(f => ({ ...f, category: cats[0]?.name || '' }))
         }
-      })
-      .finally(() => setFetching(false))
+      } finally {
+        setFetching(false)
+      }
+    }
+    load()
   }, [id, isEdit])
 
-  function handleImageChange(e) {
-    const file = e.target.files[0]
-    if (!file) return
-    setImage(file)
-    setPreview(URL.createObjectURL(file))
+  // ── Image helpers ──────────────────────────────────────────────
+
+  const totalImgs = existingImgs.length + newFiles.length
+  const canAddMore = totalImgs < MAX_IMGS
+
+  function handleFilePick(e) {
+    const picked = Array.from(e.target.files || [])
+    const slots  = MAX_IMGS - totalImgs
+    const toAdd  = picked.slice(0, slots).map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }))
+    setNewFiles(prev => [...prev, ...toAdd])
+    e.target.value = ''
   }
+
+  function removeNewFile(i) {
+    setNewFiles(prev => {
+      URL.revokeObjectURL(prev[i].preview)
+      return prev.filter((_, idx) => idx !== i)
+    })
+  }
+
+  async function handleDeleteExisting(img) {
+    try {
+      await api.deleteProductImage(id, img.id)
+      setExistingImgs(prev => prev.filter(x => x.id !== img.id))
+    } catch {
+      // silently fail
+    }
+  }
+
+  async function handleSetPrimary(img) {
+    try {
+      const res  = await api.setPrimaryImage(id, img.id)
+      const data = await res.json()
+      setExistingImgs(prev => prev.map(x => ({ ...x, is_primary: x.id === data.image.id })))
+    } catch {
+      // silently fail
+    }
+  }
+
+  // ── Form helpers ───────────────────────────────────────────────
 
   function toggleSize(s) {
     setForm(f => ({
@@ -55,6 +108,8 @@ export default function AdminProductForm() {
     setForm(f => ({ ...f, details: [...f.details, detail.trim()] }))
     setDetail('')
   }
+
+  // ── Submit ─────────────────────────────────────────────────────
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -70,12 +125,30 @@ export default function AdminProductForm() {
     fd.append('is_active',   form.is_active)
     fd.append('sizes',       JSON.stringify(form.sizes))
     fd.append('details',     JSON.stringify(form.details))
-    if (image) fd.append('image', image)
 
     try {
-      const res  = isEdit ? await api.updateProduct(id, fd) : await api.createProduct(fd)
-      const data = await res.json()
-      if (!res.ok) { setErrors(data.errors || {}); return }
+      let productId = id
+
+      if (isEdit) {
+        const res  = await api.updateProduct(id, fd)
+        const data = await res.json()
+        if (!res.ok) { setErrors(data.errors || {}); return }
+      } else {
+        // attach new images on creation
+        newFiles.forEach(({ file }) => fd.append('images', file))
+        const res  = await api.createProduct(fd)
+        const data = await res.json()
+        if (!res.ok) { setErrors(data.errors || {}); return }
+        productId = data.product?.id
+      }
+
+      // on edit, upload any new files separately
+      if (isEdit && newFiles.length > 0) {
+        const imgFd = new FormData()
+        newFiles.forEach(({ file }) => imgFd.append('images', file))
+        await api.addProductImages(productId, imgFd)
+      }
+
       navigate('/admin/products')
     } finally {
       setLoading(false)
@@ -98,29 +171,114 @@ export default function AdminProductForm() {
 
       <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-8">
 
-        {/* Left column */}
+        {/* ── Left column ── */}
         <div className="flex flex-col gap-6">
 
-          {/* Image upload */}
+          {/* Image manager */}
           <div>
-            <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted mb-3">Product Image</p>
-            <label className="block cursor-pointer group">
-              <div className={`aspect-[3/4] border border-dashed border-primary/20 group-hover:border-primary/40 transition-colors flex items-center justify-center overflow-hidden relative ${preview ? '' : 'bg-surface'}`}>
-                {preview
-                  ? <img src={preview} alt="preview" className="w-full h-full object-cover" />
-                  : <div className="flex flex-col items-center gap-2 text-muted">
-                      <Upload size={20} strokeWidth={1.4} />
-                      <p className="text-[10px] font-bold tracking-[0.2em] uppercase">Upload Image</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted">
+                Images <span className="text-muted/50">({totalImgs}/{MAX_IMGS})</span>
+              </p>
+              {canAddMore && (
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="flex items-center gap-1.5 text-[10px] font-bold tracking-[0.2em] uppercase text-muted hover:text-primary transition-colors"
+                >
+                  <Plus size={12} strokeWidth={2} /> Add
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFilePick}
+              className="hidden"
+            />
+
+            {totalImgs === 0 ? (
+              /* Empty state — big upload zone */
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="w-full aspect-[3/4] border border-dashed border-primary/20 hover:border-primary/40 flex flex-col items-center justify-center gap-2 text-muted bg-surface transition-colors"
+              >
+                <Upload size={20} strokeWidth={1.4} />
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase">Upload Images</p>
+                <p className="text-[9px] tracking-[0.1em] text-muted/50">Up to {MAX_IMGS} photos</p>
+              </button>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {/* Existing images */}
+                {existingImgs.map(img => (
+                  <div key={img.id} className="relative group aspect-[3/4] bg-surface overflow-hidden">
+                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    {img.is_primary && (
+                      <span className="absolute top-1.5 left-1.5 bg-primary text-text-dark p-1 rounded-sm">
+                        <Crown size={9} strokeWidth={2} />
+                      </span>
+                    )}
+                    <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      {!img.is_primary && isEdit && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetPrimary(img)}
+                          title="Set as primary"
+                          className="w-7 h-7 bg-background/80 flex items-center justify-center text-muted hover:text-primary transition-colors"
+                        >
+                          <Crown size={11} strokeWidth={1.8} />
+                        </button>
+                      )}
+                      {isEdit && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExisting(img)}
+                          title="Delete image"
+                          className="w-7 h-7 bg-background/80 flex items-center justify-center text-muted hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 size={11} strokeWidth={1.8} />
+                        </button>
+                      )}
                     </div>
-                }
-                {preview && (
-                  <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <p className="text-[10px] font-bold tracking-[0.2em] uppercase">Change Image</p>
                   </div>
+                ))}
+
+                {/* New (staged) files */}
+                {newFiles.map((f, i) => (
+                  <div key={i} className="relative group aspect-[3/4] bg-surface overflow-hidden">
+                    <img src={f.preview} alt="" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-background/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => removeNewFile(i)}
+                        className="w-7 h-7 bg-background/80 flex items-center justify-center text-muted hover:text-red-400 transition-colors"
+                      >
+                        <X size={11} strokeWidth={2} />
+                      </button>
+                    </div>
+                    <span className="absolute bottom-1.5 right-1.5 text-[8px] font-bold tracking-[0.1em] uppercase bg-primary/80 text-text-dark px-1.5 py-0.5">
+                      New
+                    </span>
+                  </div>
+                ))}
+
+                {/* Add-more tile */}
+                {canAddMore && (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="aspect-[3/4] border border-dashed border-primary/20 hover:border-primary/40 flex flex-col items-center justify-center gap-1.5 text-muted bg-surface transition-colors"
+                  >
+                    <Plus size={16} strokeWidth={1.5} />
+                    <p className="text-[9px] font-bold tracking-[0.15em] uppercase">Add</p>
+                  </button>
                 )}
               </div>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-            </label>
+            )}
           </div>
 
           {/* Sizes */}
@@ -167,12 +325,12 @@ export default function AdminProductForm() {
           </div>
         </div>
 
-        {/* Right column */}
+        {/* ── Right column ── */}
         <div className="flex flex-col gap-6">
 
           {[
-            { name: 'name',        label: 'Product Name',  type: 'text'   },
-            { name: 'price',       label: 'Price (NGN)',   type: 'number' },
+            { name: 'name',        label: 'Product Name',  type: 'text'     },
+            { name: 'price',       label: 'Price (NGN)',   type: 'number'   },
             { name: 'description', label: 'Description',   type: 'textarea' },
           ].map(f => (
             <div key={f.name} className="flex flex-col gap-2">
@@ -194,7 +352,7 @@ export default function AdminProductForm() {
               <label className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted">Category</label>
               <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                 className="bg-surface border border-primary/20 px-3 py-2 text-[12px] tracking-[0.04em] text-primary focus:outline-none focus:border-primary/50 transition-colors">
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
               </select>
             </div>
 

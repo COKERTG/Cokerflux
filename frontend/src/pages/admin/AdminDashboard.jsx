@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Package, Users, TrendingUp, ArrowRight, EyeOff } from 'lucide-react'
 import { api } from '../../lib/api'
+import ProductImage from '../../components/ProductImage'
 import { useAuth } from '../../context/AuthContext'
 
 function StatCard({ icon: Icon, label, value, sub, to }) {
@@ -25,10 +26,18 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.getDashboard()
-      .then(r => r.json())
-      .then(d => setData(d))
-      .finally(() => setLoading(false))
+    async function load() {
+      try {
+        const r = await api.getDashboard()
+        const d = await r.json()
+        setData(d)
+      } catch {
+        // silently fail — dashboard shows empty state
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [])
 
   const p = data?.products
@@ -124,7 +133,7 @@ export default function AdminDashboard() {
                 className={`flex items-center gap-4 py-3 ${i < p.recent.length - 1 ? 'border-b border-primary/8' : ''} hover:bg-primary/3 -mx-2 px-2 transition-colors group`}>
                 <div className="w-8 h-10 bg-surface border border-primary/15 overflow-hidden shrink-0">
                   {prod.image
-                    ? <img src={prod.image} alt={prod.name} className="w-full h-full object-cover" />
+                    ? <ProductImage src={prod.image} alt={prod.name} wrapperClassName="w-full h-full" className="w-full h-full object-cover" />
                     : <div className="w-full h-full bg-primary/5" />
                   }
                 </div>
