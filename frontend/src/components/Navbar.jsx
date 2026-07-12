@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Search, ShoppingBag, Menu, X } from 'lucide-react';
-import { useCurrency } from '../context/CurrencyContext';
 import { useCart } from '../context/CartContext';
 import CartModal from './CartModal';
 import SearchOverlay from './SearchOverlay';
@@ -22,7 +21,6 @@ export default function Navbar() {
   const [scrolled,   setScrolled]   = useState(false)
   const [menuOpen,   setMenuOpen]   = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const { currency, setCurrency } = useCurrency()
   const { items } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -92,13 +90,6 @@ export default function Navbar() {
 
           <div className="flex items-center gap-5 pl-6 border-l border-primary/15">
             <button
-              onClick={() => setCurrency(c => c === 'NGN' ? 'GHS' : 'NGN')}
-              className="text-[9px] font-bold tracking-[0.18em] uppercase border border-primary/25 px-2 py-1 text-muted hover:text-primary hover:border-primary/50 transition-all duration-200"
-            >
-              {currency === 'NGN' ? '₦ NGN' : 'GH₵ GHS'}
-            </button>
-
-            <button
               aria-label="Search"
               onClick={() => setSearchOpen(true)}
               className="text-muted hover:text-primary transition-colors duration-200"
@@ -166,15 +157,6 @@ export default function Navbar() {
             <span className="text-primary/30 text-[16px] font-light">→</span>
           </Link>
         ))}
-
-        <div className="px-5 md:px-10 py-5 flex items-center gap-5">
-          <button
-            onClick={() => setCurrency(c => c === 'NGN' ? 'GHS' : 'NGN')}
-            className="text-[9px] font-bold tracking-[0.18em] uppercase border border-primary/25 px-2 py-1 text-muted hover:text-primary hover:border-primary/50 transition-all duration-200"
-          >
-            {currency === 'NGN' ? '₦ NGN' : 'GH₵ GHS'}
-          </button>
-        </div>
       </div>
 
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />

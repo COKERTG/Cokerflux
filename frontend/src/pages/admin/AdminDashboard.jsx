@@ -1,24 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Package, Users, TrendingUp, ArrowRight, EyeOff } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { api } from '../../lib/api'
 import ProductImage from '../../components/ProductImage'
 import { useAuth } from '../../context/AuthContext'
-
-function StatCard({ icon: Icon, label, value, sub, to }) {
-  const inner = (
-    <div className="bg-surface border border-primary/10 p-6 hover:border-primary/25 transition-all duration-200 group">
-      <div className="flex items-start justify-between mb-6">
-        <Icon size={16} strokeWidth={1.6} className="text-muted group-hover:text-primary transition-colors" />
-        {to && <ArrowRight size={12} strokeWidth={1.6} className="text-primary/20 group-hover:text-primary transition-colors" />}
-      </div>
-      <p className="font-display text-[42px] leading-none tracking-[0.02em] mb-1">{value ?? '—'}</p>
-      <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted">{label}</p>
-      {sub && <p className="text-[11px] text-muted/60 mt-1 tracking-[0.03em]">{sub}</p>}
-    </div>
-  )
-  return to ? <Link to={to}>{inner}</Link> : inner
-}
+import {
+  PageHeader, Panel, StatCard, CategoryBar, StatusTag,
+} from '../../admin/ui'
 
 export default function AdminDashboard() {
   const { canManage } = useAuth()
@@ -52,86 +40,98 @@ export default function AdminDashboard() {
     ] : []),
   ]
 
+  const categories = p ? Object.entries(p.by_category) : []
+
   return (
     <div>
-      <div className="mb-10">
-        <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-2">Overview</p>
-        <h1 className="font-display text-[44px] leading-none tracking-[0.03em]">DASHBOARD</h1>
-      </div>
+      <PageHeader kicker="Overview" title="DASHBOARD" />
 
-      {/* ── Stat cards ── */}
-      <div className={`grid grid-cols-2 ${canManage ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-px bg-primary/8 mb-10`}>
-        <StatCard icon={Package}    label="Total Products"    value={p?.total}    to="/admin/products" />
-        <StatCard icon={TrendingUp} label="Active Products"   value={p?.active}   sub={p ? `${p.inactive} inactive` : undefined} />
-        <StatCard icon={EyeOff}     label="Inactive Products" value={p?.inactive} />
+      {/* ── Stat cards ── (label-over-metric hierarchy, no generic icon+label combo) */}
+      <div className={`grid grid-cols-2 ${canManage ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4 md:gap-5 mb-5`}>
+        <StatCard
+          label="Total Products"
+          value={p?.total}
+          sub={p ? `${p.active} active · ${p.inactive} inactive` : undefined}
+          to="/admin/products"
+        />
+        <StatCard
+          label="Active Products"
+          value={p?.active}
+          sub={p ? 'Visible in shop' : undefined}
+        />
+        <StatCard
+          label="Inactive Products"
+          value={p?.inactive}
+          sub={p ? 'Hidden from shop' : undefined}
+        />
         {canManage && (
-          <StatCard icon={Users} label="Staff Members" value={s?.total}
-            sub={s?.pending_invites ? `${s.pending_invites} invite${s.pending_invites !== 1 ? 's' : ''} pending` : undefined}
-            to="/admin/staff" />
+          <StatCard
+            label="Staff Members"
+            value={s?.total}
+            sub={s?.pending_invites
+              ? `${s.pending_invites} invite${s.pending_invites !== 1 ? 's' : ''} pending`
+              : 'No pending invites'}
+            to="/admin/staff"
+          />
         )}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-px bg-primary/8 mb-px">
+      {/* ── Breakdown + quick actions ── */}
+      <div className="grid lg:grid-cols-2 gap-4 md:gap-5 mb-5">
 
-        {/* ── By category ── */}
-        <div className="bg-surface p-6">
-          <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-5">Products by Category</p>
+        {/* By category */}
+        <Panel title="Products by Category">
           {loading ? (
-            <p className="text-[11px] text-muted">Loading...</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {p && Object.entries(p.by_category).map(([cat, count]) => {
-                const pct = p.total > 0 ? Math.round((count / p.total) * 100) : 0
-                return (
-                  <div key={cat}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[11px] font-bold tracking-[0.1em] uppercase">{cat}</span>
-                      <span className="text-[11px] text-muted">{count} <span className="text-muted/50">({pct}%)</span></span>
-                    </div>
-                    <div className="h-px bg-primary/10 w-full relative">
-                      <div className="absolute inset-y-0 left-0 bg-primary/40 h-[2px] -top-[0.5px] transition-all duration-500"
-                        style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                )
-              })}
-              {!p && <p className="text-[11px] text-muted/60">No data</p>}
+            <p className="text-[11px] text-muted tracking-[0.1em]">Loading…</p>
+          ) : categories.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {categories.map(([cat, count]) => (
+                <CategoryBar key={cat} label={cat} count={count} total={p.total} />
+              ))}
             </div>
+          ) : (
+            <p className="text-[11px] text-muted/60 tracking-[0.03em]">No category data yet.</p>
           )}
-        </div>
+        </Panel>
 
-        {/* ── Quick actions ── */}
-        <div className="bg-surface p-6">
-          <p className="text-[10px] font-bold tracking-[0.25em] uppercase mb-5">Quick Actions</p>
-          <div className="flex flex-col gap-2">
-            {quickActions.map(({ label, to }) => (
-              <Link key={label + to} to={to}
-                className="flex items-center justify-between py-3 border-b border-primary/8 text-[11px] font-bold tracking-[0.15em] uppercase text-muted hover:text-primary transition-colors duration-200 group">
+        {/* Quick actions */}
+        <Panel title="Quick Actions" bodyClassName="px-5 md:px-6 py-1">
+          <div className="flex flex-col">
+            {quickActions.map(({ label, to }, i) => (
+              <Link
+                key={label + to}
+                to={to}
+                className={`flex items-center justify-between py-4 text-[11px] font-bold tracking-[0.15em] uppercase text-muted hover:text-primary transition-colors duration-200 group ${i < quickActions.length - 1 ? 'border-b border-primary/8' : ''}`}
+              >
                 {label}
-                <ArrowRight size={11} strokeWidth={1.6} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ArrowRight size={12} strokeWidth={1.8} className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
               </Link>
             ))}
           </div>
-        </div>
+        </Panel>
       </div>
 
-      {/* ── Recent products ── */}
-      <div className="bg-surface border-t-0 p-6 border border-primary/10">
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-[10px] font-bold tracking-[0.25em] uppercase">Recently Added</p>
+      {/* ── Recently added ── */}
+      <Panel
+        title="Recently Added"
+        action={
           <Link to="/admin/products" className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted hover:text-primary transition-colors">
             View all
           </Link>
-        </div>
-
+        }
+        bodyClassName="px-5 md:px-6 py-1"
+      >
         {loading ? (
-          <p className="text-[11px] text-muted">Loading...</p>
+          <p className="text-[11px] text-muted tracking-[0.1em] py-4">Loading…</p>
         ) : p?.recent?.length > 0 ? (
           <div className="flex flex-col">
             {p.recent.map((prod, i) => (
-              <Link key={prod.id} to={`/admin/products/${prod.id}/edit`}
-                className={`flex items-center gap-4 py-3 ${i < p.recent.length - 1 ? 'border-b border-primary/8' : ''} hover:bg-primary/3 -mx-2 px-2 transition-colors group`}>
-                <div className="w-8 h-10 bg-surface border border-primary/15 overflow-hidden shrink-0">
+              <Link
+                key={prod.id}
+                to={`/admin/products/${prod.id}/edit`}
+                className={`flex items-center gap-4 py-3.5 ${i < p.recent.length - 1 ? 'border-b border-primary/8' : ''} hover:bg-primary/[0.04] -mx-3 px-3 transition-colors group`}
+              >
+                <div className="w-9 h-11 bg-surface border border-primary/15 overflow-hidden shrink-0">
                   {prod.image
                     ? <ProductImage src={prod.image} alt={prod.name} wrapperClassName="w-full h-full" className="w-full h-full object-cover" />
                     : <div className="w-full h-full bg-primary/5" />
@@ -139,19 +139,21 @@ export default function AdminDashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-[12px] font-bold tracking-[0.06em] uppercase truncate group-hover:text-primary transition-colors">{prod.name}</p>
-                  <p className="text-[10px] text-muted">{prod.category}</p>
+                  <p className="text-[10px] text-muted tracking-[0.04em] mt-0.5">{prod.category}</p>
                 </div>
-                <p className="text-[12px] font-bold shrink-0">₦{prod.price?.toLocaleString()}</p>
-                <span className={`text-[9px] font-bold tracking-[0.2em] uppercase px-2 py-1 shrink-0 ${prod.is_active ? 'bg-green-500/15 text-green-400' : 'bg-primary/8 text-muted'}`}>
-                  {prod.is_active ? 'Active' : 'Inactive'}
-                </span>
+                <p className="text-[12px] font-bold tracking-[0.04em] shrink-0">₦{prod.price?.toLocaleString()}</p>
+                <div className="shrink-0 w-[72px] flex justify-end">
+                  <StatusTag active={prod.is_active} />
+                </div>
               </Link>
             ))}
           </div>
         ) : (
-          <p className="text-[11px] text-muted/60">No products yet. <Link to="/admin/products/new" className="text-primary underline">Add one.</Link></p>
+          <p className="text-[11px] text-muted/60 py-4">
+            No products yet. <Link to="/admin/products/new" className="text-primary underline underline-offset-2">Add one.</Link>
+          </p>
         )}
-      </div>
+      </Panel>
     </div>
   )
 }

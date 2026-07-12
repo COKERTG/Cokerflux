@@ -1,4 +1,7 @@
+import ipaddress
+import json
 import logging
+import urllib.request
 from smtplib import SMTPException
 
 from django.conf import settings
@@ -9,11 +12,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import ContactMessage
-from .serializers import ContactMessageSerializer
+from .models import ContactMessage, StoreSettings
+from .serializers import ContactMessageSerializer, StoreSettingsSerializer
 from products.models import Category, Product
 from products.serializers import ProductSerializer
 from users.models import InviteToken
+from users.permissions import IsOwnerOrAdmin
 from users.serializers import UserSerializer
 
 
@@ -21,8 +25,85 @@ logger = logging.getLogger(__name__)
 
 
 class HealthAPIView(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         return Response({'ok': True, 'service': 'cokerflux-backend'})
+
+
+class StoreSettingsAPIView(APIView):
+    """Store-wide settings (WhatsApp numbers).
+
+    GET   /api/settings/ — public, read by the storefront checkout.
+    PATCH /api/settings/ — owner/admin only, edited from the admin panel.
+    """
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsOwnerOrAdmin()]
+
+    def get(self, request):
+        return Response(StoreSettingsSerializer(StoreSettings.load()).data)
+
+    def patch(self, request):
+        serializer = StoreSettingsSerializer(StoreSettings.load(), data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+class DetectLocationAPIView(APIView):
+    """GET /api/detect-location/ — resolve the visitor's country from their IP
+    (server-side, so no geolocation API key is exposed to the browser) and map it
+    to a display currency. Never errors out: any failure falls back to the default.
+    """
+    permission_classes = [AllowAny]
+
+    CURRENCY_BY_COUNTRY = {'NG': 'NGN', 'GH': 'GHS'}
+    DEFAULT_CURRENCY = 'NGN'  # anywhere outside NG/GH sees NGN pricing
+
+    def get(self, request):
+        ip = self._client_ip(request)
+        country_code = None
+        if ip and not self._is_private(ip):
+            country_code = self._lookup_country(ip)
+
+        currency = self.CURRENCY_BY_COUNTRY.get(country_code, self.DEFAULT_CURRENCY)
+        return Response({
+            'ip': ip,
+            'country_code': country_code,
+            'currency': currency,
+        })
+
+    @staticmethod
+    def _client_ip(request):
+        # Behind a proxy/CDN the real client is the first hop in X-Forwarded-For.
+        forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+        if forwarded:
+            return forwarded.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR', '').strip()
+
+    @staticmethod
+    def _is_private(ip):
+        # localhost / LAN addresses can't be geolocated (e.g. in dev) — skip the lookup.
+        try:
+            addr = ipaddress.ip_address(ip)
+            return addr.is_private or addr.is_loopback
+        except ValueError:
+            return True
+
+    @staticmethod
+    def _lookup_country(ip):
+        url = f'http://ip-api.com/json/{ip}?fields=status,countryCode'
+        try:
+            with urllib.request.urlopen(url, timeout=3) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+            if data.get('status') == 'success':
+                return data.get('countryCode')
+        except Exception as exc:  # network error, timeout, bad JSON — non-fatal
+            logger.warning('IP geolocation lookup failed for %s: %s', ip, exc)
+        return None
 
 
 class ContactAPIView(APIView):

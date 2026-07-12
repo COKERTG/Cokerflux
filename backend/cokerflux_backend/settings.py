@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
@@ -38,9 +39,30 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    # Deny by default: any view without an explicit permission_classes requires
+    # authentication. Public endpoints opt in with permission_classes = [AllowAny].
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
+}
+
+# ── Password strength ─────────────────────────────────────────────────────────
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# ── JWT (rest_framework_simplejwt) ────────────────────────────────────────────
+# Short-lived access tokens; refresh tokens rotate on every use and the old one is
+# blacklisted, so a leaked refresh token is single-use. The custom refresh view
+# (users.views.TokenRefreshAPIView) implements this rotation to match these flags.
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 MIDDLEWARE = [
@@ -101,6 +123,20 @@ CORS_ALLOW_CREDENTIALS = True
 
 # ── CSRF ──────────────────────────────────────────────────────────────────────
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', FRONTEND_URL).split(',') if o.strip()]
+
+# ── Production security ────────────────────────────────────────────────────────
+# Only enforced when DEBUG is False, so local http development is unaffected.
+# The app sits behind nginx/HTTPS in production, so trust the proxy's forwarded
+# scheme and force secure transport everywhere.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000          # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND      = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')

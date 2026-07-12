@@ -1,61 +1,85 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, ArrowDown, Loader2 } from 'lucide-react'
+import { ArrowUpRight, ArrowRight, Loader2 } from 'lucide-react'
 import { useCurrency } from '../context/CurrencyContext'
 import { useProducts } from '../context/productContextValue'
 import hero from '../assets/hero.webp'
 import ProductImage from '../components/ProductImage'
+import Reveal from '../components/Reveal'
 
 const marqueeItems = [
-  'New Drop SS25', 'Built Different', 'Limited Stock', 'Free Shipping ₦50K+', 'Cokerflux',
+  'SS25 Live', 'Built Different', 'Small Numbers', 'Lagos Made', 'Cokerflux',
 ]
 
 export default function HomePage() {
   const { formatPrice } = useCurrency()
   const { products, loading } = useProducts()
-  const featuredProducts = products.slice(0, 3)
+
+  const featured = products.slice(0, 5)
+  const editorialImg =
+    products[3]?.image || products[2]?.image || products[0]?.image || hero
 
   return (
-    <main className="bg-background text-primary">
+    <main className="bg-background text-primary overflow-x-clip">
 
-      {/* ── Hero ── */}
-      <section className="relative min-h-[calc(90vh-88px)] md:min-h-[calc(90vh-98px)] flex flex-col justify-center pb-16 px-5 md:px-10">
-        <img
-          src={hero}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover object-top"
-        />
-        <div className="absolute inset-0 bg-background/55" />
+      {/* ══ Hero — asymmetric: type crashes in from the left, image bleeds off the right ══ */}
+      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+        {/* Image plate: full-bleed on mobile, right ~64% on desktop, running off the edge */}
+        <div className="absolute inset-0 md:left-auto md:right-0 md:w-[64%]">
+          <img
+            src={hero}
+            alt=""
+            className="w-full h-full object-cover object-[50%_20%]"
+          />
+          {/* mobile: flat scrim for legibility. desktop: horizontal fade into the dark so type sits over it */}
+          <div className="absolute inset-0 bg-background/65 md:hidden" />
+          <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-background via-background/45 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
+        </div>
 
-        <div className="relative z-10 max-w-[680px]">
-          <p className="text-[10px] font-bold tracking-[0.35em] text-primary/50 uppercase mb-4">
-            Spring / Summer 2025
+        {/* Vertical edge marker — small hand-set detail */}
+        <span className="hidden md:block absolute left-6 top-1/2 -translate-y-1/2 [writing-mode:vertical-rl] rotate-180 text-[9px] font-bold tracking-[0.45em] uppercase text-primary/30">
+          Est. Lagos · Vol. 01
+        </span>
+
+        <div className="relative z-10 w-full px-5 md:pl-16 md:pr-10">
+          <p className="text-[10px] font-bold tracking-[0.4em] text-primary/55 uppercase mb-5">
+            Lagos, Nigeria — SS25
           </p>
-          <h1 className="font-display text-[56px] sm:text-[80px] md:text-[128px] leading-[0.88] tracking-[0.02em] text-primary mb-8 md:mb-10">
-            BUILT<br />DIFFERENT
+
+          {/* Oversized, tight, allowed to run past its column into the image */}
+          <h1 className="font-display leading-[0.78] tracking-[0.01em] text-primary -ml-[2px] md:-ml-1 mb-9">
+            <span className="block text-[68px] sm:text-[120px] md:text-[180px] lg:text-[224px]">
+              BUILT
+            </span>
+            <span className="block text-[68px] sm:text-[120px] md:text-[180px] lg:text-[224px] whitespace-nowrap">
+              DIFFERENT
+            </span>
           </h1>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-7">
+
+          <p className="text-[15px] md:text-[16px] text-primary/70 leading-snug tracking-[0.02em] max-w-[380px] mb-9">
+            A frequency, not a brand. Cut for the ones who set the tone —
+            never the ones who wait for it.
+          </p>
+
+          <div className="flex items-center gap-6">
             <Link
               to="/shop"
-              className="inline-flex items-center gap-3 bg-primary text-text-dark px-6 md:px-8 py-3 md:py-3.5 text-[11px] font-bold tracking-[0.25em] uppercase hover:bg-primary/85 transition-colors duration-200"
+              className="group inline-flex items-center gap-3 bg-primary text-text-dark pl-7 pr-6 py-3.5 text-[11px] font-bold tracking-[0.25em] uppercase hover:bg-primary/85 transition-colors duration-200"
             >
-              Shop SS25 <ArrowRight size={12} strokeWidth={2.2} />
+              See the drop
+              <ArrowUpRight size={14} strokeWidth={2.2} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Link>
             <Link
               to="/about"
-              className="text-[11px] font-bold tracking-[0.25em] uppercase text-primary/50 hover:text-primary transition-colors duration-200 border-b border-primary/20 pb-px"
+              className="text-[11px] font-bold tracking-[0.25em] uppercase text-primary/45 hover:text-primary transition-colors duration-200 border-b border-primary/20 hover:border-primary/60 pb-px"
             >
-              Our Story
+              Our story
             </Link>
           </div>
         </div>
-
-        <div className="absolute bottom-7 right-5 md:right-10 flex items-center gap-2 text-primary/25 z-10">
-          <span className="text-[9px] tracking-[0.2em] uppercase font-bold">Scroll</span>
-          <ArrowDown size={11} strokeWidth={1.5} />
-        </div>
       </section>
 
-      {/* ── Marquee band ── */}
+      {/* ══ Marquee band ══ */}
       <div className="border-y border-primary/10 bg-surface overflow-hidden py-[14px]">
         <div className="flex gap-16 whitespace-nowrap animate-ticker">
           {[...marqueeItems, ...marqueeItems, ...marqueeItems].map((t, i) => (
@@ -66,91 +90,165 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ── The Drop ── */}
-      <section className="px-4 md:px-10 py-12 md:py-20 border-b border-primary/10">
-        <div className="flex items-end justify-between mb-8 md:mb-10">
-          <div>
-            <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-2">SS25 Collection</p>
-            <h2 className="font-display text-[36px] md:text-[52px] leading-none tracking-[0.04em]">THE DROP</h2>
+      {/* ══ The Drop — editorial grid, one piece runs large, the rest hold rank ══ */}
+      <section className="px-4 md:px-10 pt-14 md:pt-24 pb-16 md:pb-28">
+        <Reveal>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-9 md:mb-12">
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.35em] text-muted uppercase mb-3">
+                SS25 — Limited runs
+              </p>
+              <h2 className="font-display text-[52px] sm:text-[76px] md:text-[104px] leading-[0.82] tracking-[0.01em]">
+                THE DROP
+              </h2>
+            </div>
+            <div className="md:text-right md:pb-3 max-w-[300px]">
+              <p className="text-[13px] text-muted leading-snug tracking-[0.02em] mb-3">
+                Five pieces. Small numbers. When they're gone, that's the whole
+                conversation.
+              </p>
+              <Link
+                to="/shop"
+                className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.22em] uppercase text-primary border-b border-primary/25 hover:border-primary pb-px transition-colors duration-200"
+              >
+                Everything <ArrowRight size={11} strokeWidth={2} />
+              </Link>
+            </div>
           </div>
-          <Link
-            to="/shop"
-            className="hidden md:inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] uppercase text-muted hover:text-primary transition-colors duration-200 border-b border-muted/20 pb-px"
-          >
-            View All <ArrowRight size={11} strokeWidth={2} />
-          </Link>
-        </div>
+        </Reveal>
 
         {loading ? (
-          <div className="flex items-center justify-center py-24">
+          <div className="flex items-center justify-center py-32">
             <Loader2 size={24} className="animate-spin text-muted" />
           </div>
-        ) : featuredProducts.length === 0 ? (
-          <div className="flex items-center justify-center py-24">
-            <p className="text-[12px] font-bold tracking-[0.15em] uppercase text-muted">Coming soon</p>
+        ) : featured.length === 0 ? (
+          <div className="flex items-center justify-center py-32 border border-primary/10">
+            <p className="text-[12px] font-bold tracking-[0.2em] uppercase text-muted">
+              The next drop is loading
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-px bg-primary/8">
-            {featuredProducts.map((p) => (
-              <Link to={`/product/${p.id}`} key={p.id} className="group bg-background hover:bg-surface transition-colors duration-300">
-                <div className="aspect-[3/4] relative overflow-hidden">
-                  <ProductImage
-                    src={p.image}
-                    alt={p.name}
-                    wrapperClassName="w-full h-full"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-background/10 group-hover:bg-background/0 transition-colors duration-300" />
-                  {p.tag && (
-                    <span className="absolute top-4 left-4 text-[9px] font-bold tracking-[0.25em] uppercase bg-primary text-text-dark px-2 py-[3px]">
-                      {p.tag}
+          <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[58vw] md:auto-rows-[23vw] gap-px bg-primary/10">
+            {featured.map((p, i) => {
+              const big = i === 0
+              return (
+                <Reveal
+                  key={p.id}
+                  delay={Math.min(i, 4) * 55}
+                  className={big ? 'col-span-2 md:row-span-2' : 'col-span-1'}
+                >
+                  <Link
+                    to={`/product/${p.id}`}
+                    className="group relative block w-full h-full bg-background overflow-hidden"
+                  >
+                    <ProductImage
+                      src={p.image}
+                      alt={p.name}
+                      wrapperClassName="w-full h-full"
+                      className="w-full h-full object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+                    />
+
+                    {/* legibility gradient at the foot of every tile */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background/85 via-background/20 to-transparent" />
+
+                    {p.tag && (
+                      <span className="absolute top-3 left-3 md:top-4 md:left-4 text-[9px] font-bold tracking-[0.25em] uppercase bg-primary text-text-dark px-2 py-[3px]">
+                        {p.tag}
+                      </span>
+                    )}
+
+                    {/* corner arrow appears on hover */}
+                    <span className="absolute top-3 right-3 md:top-4 md:right-4 w-8 h-8 border border-primary/20 bg-background/30 backdrop-blur-sm flex items-center justify-center text-primary/60 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+                      <ArrowUpRight size={13} strokeWidth={2} />
                     </span>
-                  )}
-                  <p className="absolute bottom-4 left-4 text-[10px] tracking-[0.15em] text-primary uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {p.category}
-                  </p>
-                </div>
-                <div className="px-4 md:px-5 py-4 flex items-center justify-between border-t border-primary/8">
-                  <div>
-                    <p className="text-[12px] font-bold tracking-[0.08em] uppercase mb-0.5">{p.name}</p>
-                    <p className="text-[12px] text-muted tracking-[0.04em]">{formatPrice(p.price)}</p>
-                  </div>
-                  <span className="w-8 h-8 border border-primary/15 flex items-center justify-center text-primary/30 group-hover:text-primary group-hover:border-primary/50 transition-all duration-200">
-                    <ArrowRight size={13} strokeWidth={1.5} />
-                  </span>
-                </div>
-              </Link>
-            ))}
+
+                    <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-[9px] tracking-[0.2em] uppercase text-primary/50 mb-1">
+                          {p.category}
+                        </p>
+                        <p className={`font-bold tracking-[0.06em] uppercase leading-tight ${big ? 'text-[15px] md:text-[19px]' : 'text-[12px] md:text-[13px]'}`}>
+                          {p.name}
+                        </p>
+                      </div>
+                      <p className={`text-muted tracking-[0.03em] shrink-0 ${big ? 'text-[14px] md:text-[16px]' : 'text-[12px]'}`}>
+                        {formatPrice(p.price, p.price_ghs)}
+                      </p>
+                    </div>
+                  </Link>
+                </Reveal>
+              )
+            })}
           </div>
         )}
-
-        {/* Mobile "View All" link */}
-        <Link
-          to="/shop"
-          className="md:hidden flex items-center justify-center gap-2 mt-6 text-[11px] font-bold tracking-[0.2em] uppercase text-muted hover:text-primary transition-colors duration-200 border border-primary/15 py-3"
-        >
-          View All <ArrowRight size={11} strokeWidth={2} />
-        </Link>
       </section>
 
-      {/* ── Brand statement ── */}
-      <section className="px-5 md:px-10 py-16 md:py-24 border-b border-primary/10">
-        <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-6">The Ethos</p>
-        <h2 className="font-display text-[36px] sm:text-[52px] md:text-[96px] leading-[0.9] tracking-[0.02em] max-w-[860px] mb-8 md:mb-10">
-          NOT MADE FOR EVERYONE. MADE FOR THE ONES WHO MOVE.
-        </h2>
-        <p className="text-[14px] text-muted leading-relaxed tracking-[0.03em] max-w-[420px] mb-8 md:mb-10">
-          Cokerflux isn't a brand — it's a frequency. Worn by those who don't ask for permission, built for the culture that sets the tone.
-        </p>
-        <Link
-          to="/about"
-          className="inline-flex items-center gap-3 text-[11px] font-bold tracking-[0.25em] uppercase text-primary border-b border-primary/30 pb-px hover:border-primary transition-colors duration-200"
+      {/* ══ Rhythm break — full-bleed editorial, diagonal top edge, type set INTO the image ══ */}
+      <section
+        className="relative min-h-[80vh] flex items-end overflow-hidden"
+        style={{ clipPath: 'polygon(0 clamp(28px,6vw,90px), 100% 0, 100% 100%, 0 100%)' }}
+      >
+        <img
+          src={editorialImg}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-background/45" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/70 to-transparent" />
+
+        <div className="relative z-10 w-full px-5 md:px-16 pb-14 md:pb-20">
+          <Reveal>
+            <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-primary/60 mb-5">
+              The ethos
+            </p>
+            <h2 className="font-display text-[52px] sm:text-[92px] md:text-[130px] lg:text-[158px] leading-[0.8] tracking-[0.01em] max-w-[15ch]">
+              WORN BY THE ONES WHO MOVE
+            </h2>
+          </Reveal>
+          <Reveal delay={90}>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6 mt-8">
+              <p className="text-[14px] text-primary/70 leading-snug tracking-[0.02em] max-w-[360px]">
+                We don't chase seasons or ask for permission. Every run is small,
+                every cut deliberate, and nothing gets remade once it's gone.
+              </p>
+              <Link
+                to="/about"
+                className="inline-flex items-center gap-3 text-[11px] font-bold tracking-[0.25em] uppercase text-primary border-b border-primary/40 hover:border-primary pb-px transition-colors duration-200 whitespace-nowrap"
+              >
+                Read the story <ArrowRight size={11} strokeWidth={2} />
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ══ Closing — the wordmark, oversized and cropped off the bottom edge ══ */}
+      <section className="relative px-5 md:px-10 pt-16 md:pt-24 overflow-hidden">
+        <Reveal>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8 md:mb-10">
+            <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-muted max-w-[280px] leading-relaxed">
+              The SS25 drop is live. Small numbers, no restocks.
+            </p>
+            <Link
+              to="/shop"
+              className="group inline-flex items-center gap-3 text-[13px] font-bold tracking-[0.25em] uppercase text-primary border-b border-primary/30 hover:border-primary pb-1 transition-colors duration-200"
+            >
+              Shop the drop
+              <ArrowUpRight size={15} strokeWidth={2.2} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
+        </Reveal>
+
+        {/* Giant wordmark, clipped by the section's bottom — reads as a print bleed */}
+        <h2
+          aria-hidden="true"
+          className="font-display text-primary/[0.07] leading-[0.7] tracking-[0.02em] select-none pointer-events-none text-[26vw] translate-y-[12%]"
         >
-          Read Our Story <ArrowRight size={11} strokeWidth={2} />
-        </Link>
+          COKERFLUX
+        </h2>
       </section>
 
     </main>
   )
 }
-

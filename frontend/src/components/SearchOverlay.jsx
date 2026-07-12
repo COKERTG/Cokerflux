@@ -97,7 +97,7 @@ export default function SearchOverlay({ open, onClose }) {
                   <p className="text-[11px] font-bold tracking-[0.1em] uppercase text-primary truncate">{p.name}</p>
                   <p className="text-[10px] text-muted tracking-[0.08em] mt-0.5 uppercase">{p.category}</p>
                 </div>
-                <p className="text-[11px] font-bold tracking-[0.06em] text-primary shrink-0">{formatPrice(p.price)}</p>
+                <p className="text-[11px] font-bold tracking-[0.06em] text-primary shrink-0">{formatPrice(p.price, p.price_ghs)}</p>
               </Link>
             ))}
           </div>

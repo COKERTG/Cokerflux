@@ -1,85 +1,190 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
+import heroImg from '../assets/top.webp'
+import quoteImg from '../assets/image.webp'
+import workImg from '../assets/product.webp'
+import Reveal from '../components/Reveal'
 
-const values = [
+const principles = [
   {
-    number: '01',
-    title:  'Culture First',
-    body:   'We don\'t chase trends. We move with the culture that creates them — rooted in the streets, worn by those who shape the narrative.',
+    n: '01',
+    title: 'Culture First',
+    body: 'We move with the culture that makes the trends — never the one that waits to copy them.',
   },
   {
-    number: '02',
-    title:  'Built to Last',
-    body:   'Every piece is cut and constructed to outlast seasons. Premium fabrics, deliberate silhouettes, no shortcuts.',
+    n: '02',
+    title: 'Built to Last',
+    body: 'Premium fabric, deliberate cuts, zero shortcuts. Made to outlive the season it dropped in.',
   },
   {
-    number: '03',
-    title:  'Limited Always',
-    body:   'We never flood the market. Every drop is intentionally small — exclusivity isn\'t a marketing tactic, it\'s a commitment.',
+    n: '03',
+    title: 'Limited Always',
+    body: "Every run is small on purpose. When it's gone, it's gone — no restocks, no apologies.",
   },
 ]
 
 export default function AboutPage() {
   return (
-    <main className="bg-background text-primary min-h-screen">
+    <main className="bg-background text-primary overflow-x-clip">
 
-      {/* ── Hero ── */}
-      <section className="px-5 md:px-10 py-12 md:py-20 border-b border-primary/10">
-        <p className="text-[10px] font-bold tracking-[0.35em] text-muted uppercase mb-4">
-          Est. 2024 — Lagos
-        </p>
-        <h1 className="font-display text-[44px] sm:text-[70px] md:text-[120px] leading-[0.88] tracking-[0.02em] max-w-[900px]">
-          WE WERE BUILT DIFFERENT
-        </h1>
-      </section>
-
-      {/* ── Origin story ── */}
-      <section className="grid md:grid-cols-2 border-b border-primary/10">
-        <div className="px-5 md:px-10 py-10 md:py-16 md:border-r border-primary/10">
-          <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-4 md:mb-6">The Origin</p>
-          <p className="text-[14px] md:text-[15px] text-primary/80 leading-relaxed tracking-[0.03em] mb-5">
-            Cokerflux was born from a simple frustration — there was nowhere to buy clothes that actually reflected how we moved. Not Lagos fashion weeks, not fast fashion imports. Something real.
-          </p>
-          <p className="text-[14px] md:text-[15px] text-muted leading-relaxed tracking-[0.03em]">
-            So we built it. Starting with one hoodie, one drop, and a frequency that people felt before they even saw the logo.
-          </p>
+      {/* ══ Hero — type crashes in left, image bleeds off the right ══ */}
+      <section className="relative min-h-[86vh] flex items-center overflow-hidden">
+        <div className="absolute inset-0 md:left-auto md:right-0 md:w-[58%]">
+          <img src={heroImg} alt="" className="w-full h-full object-cover object-[50%_25%]" />
+          <div className="absolute inset-0 bg-background/65 md:hidden" />
+          <div className="absolute inset-0 hidden md:block bg-gradient-to-r from-background via-background/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
         </div>
-        <div className="px-5 md:px-10 py-10 md:py-16 border-t md:border-t-0 border-primary/10">
-          <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-4 md:mb-6">The Mission</p>
-          <p className="text-[14px] md:text-[15px] text-primary/80 leading-relaxed tracking-[0.03em] mb-5">
-            To make premium streetwear that belongs here — designed for the climate, the culture, and the people who are building something whether the world is watching or not.
+
+        <span className="hidden md:block absolute left-6 top-1/2 -translate-y-1/2 [writing-mode:vertical-rl] rotate-180 text-[9px] font-bold tracking-[0.45em] uppercase text-primary/30">
+          Est. 2024 · Lagos
+        </span>
+
+        <div className="relative z-10 w-full px-5 md:pl-16 md:pr-10">
+          <p className="text-[10px] font-bold tracking-[0.4em] text-primary/55 uppercase mb-5">
+            The Cokerflux story
           </p>
-          <p className="text-[14px] md:text-[15px] text-muted leading-relaxed tracking-[0.03em]">
-            Cokerflux is for those who move with intention. For those who are built different.
-          </p>
+          <h1 className="font-display leading-[0.78] tracking-[0.01em] -ml-[2px] md:-ml-1">
+            <span className="block text-[58px] sm:text-[104px] md:text-[150px] lg:text-[188px]">WE WERE</span>
+            <span className="block text-[58px] sm:text-[104px] md:text-[150px] lg:text-[188px] whitespace-nowrap">BUILT DIFFERENT</span>
+          </h1>
         </div>
       </section>
 
-      {/* ── Values ── */}
-      <section className="px-4 md:px-10 py-10 md:py-16 border-b border-primary/10">
-        <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-8 md:mb-12 px-1">What We Stand For</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-primary/8">
-          {values.map(v => (
-            <div key={v.number} className="bg-background p-6 md:p-8">
-              <p className="font-display text-[32px] md:text-[40px] text-primary/15 leading-none mb-4 md:mb-6">{v.number}</p>
-              <h3 className="font-display text-[20px] md:text-[22px] tracking-[0.06em] mb-3 md:mb-4">{v.title}</h3>
-              <p className="text-[12px] md:text-[13px] text-muted leading-relaxed tracking-[0.03em]">{v.body}</p>
-            </div>
+      {/* ══ Founder's note — asymmetric, first person, no centered column ══ */}
+      <section className="px-5 md:px-16 py-16 md:py-28 border-t border-primary/10">
+        <div className="grid md:grid-cols-12 gap-8 md:gap-12">
+          <div className="md:col-span-3">
+            <Reveal>
+              <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-muted mb-4">
+                A note from the founder
+              </p>
+              <p className="text-[11px] tracking-[0.15em] uppercase text-primary/40 leading-relaxed hidden md:block">
+                Coker<br />Founder, Cokerflux
+              </p>
+            </Reveal>
+          </div>
+
+          <div className="md:col-span-8 md:col-start-5">
+            <Reveal>
+              <h2 className="font-display text-[34px] sm:text-[52px] md:text-[76px] leading-[0.86] tracking-[0.01em] mb-9 md:mb-12 max-w-[16ch]">
+                I DIDN'T SET OUT TO BUILD A BRAND. I SET OUT TO FIX A PROBLEM.
+              </h2>
+            </Reveal>
+            <Reveal delay={80}>
+              <div className="max-w-[520px] space-y-5 text-[15px] md:text-[16px] leading-relaxed tracking-[0.02em] text-primary/75">
+                <p>
+                  Nothing on the shelves in Lagos fit the way we actually move — imports cut
+                  for another climate, another body, another life. Runway pieces priced like
+                  they were never meant for the street in the first place.
+                </p>
+                <p>
+                  So I made one hoodie, exactly the way I wanted it, and dropped it to a
+                  handful of people. They wore it like it meant something, and asked for the
+                  next one before I'd even made it.
+                </p>
+                <p className="text-primary">
+                  That was the whole plan. It still is — small runs, made right, for the
+                  people who already get it.
+                </p>
+              </div>
+              <p className="md:hidden mt-8 text-[11px] tracking-[0.15em] uppercase text-primary/40">
+                — Coker, Founder
+              </p>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ Rhythm break — pull-quote left, photo confined right, diagonal cut on the PHOTO only ══ */}
+      <section className="relative bg-background overflow-hidden min-h-[68vh] flex items-end pt-28 md:pt-40 pb-14 md:pb-20">
+        {/* Photo layer: full-bleed on mobile, right ~56% on desktop. The clip-path lives here,
+            so it shapes the image edge and never touches the heading. */}
+        <div
+          className="absolute inset-0 md:left-auto md:right-0 md:w-[56%]"
+          style={{ clipPath: 'polygon(0 clamp(32px,6vw,96px), 100% 0, 100% 100%, 0 100%)' }}
+        >
+          <img src={quoteImg} alt="" className="w-full h-full object-cover object-center" />
+          {/* darken, then fade the photo's left edge into the dark section so the heading stays legible */}
+          <div className="absolute inset-0 bg-background/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/55 md:via-background/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
+        </div>
+
+        {/* Heading: left column, sits fully inside the section — never crosses the cut line */}
+        <div className="relative z-10 w-full px-5 md:px-16">
+          <Reveal>
+            <h2 className="font-display text-[40px] sm:text-[64px] md:text-[96px] lg:text-[116px] leading-[0.82] tracking-[0.01em] max-w-[13ch] md:max-w-[600px]">
+              WE DON'T DROP FOR EVERYONE. WE DROP FOR THE ONES WHO GET IT.
+            </h2>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ══ Principles — asymmetric rows, NOT a 3-icon grid ══ */}
+      <section className="px-5 md:px-16 py-16 md:py-24">
+        <Reveal>
+          <p className="text-[10px] font-bold tracking-[0.4em] uppercase text-muted mb-10 md:mb-16">
+            How we move
+          </p>
+        </Reveal>
+        <div>
+          {principles.map((p, i) => (
+            <Reveal key={p.n} delay={i * 60}>
+              <div className="grid md:grid-cols-12 items-baseline gap-4 md:gap-8 py-8 md:py-12 border-t border-primary/10">
+                <p className="md:col-span-2 font-display text-[44px] md:text-[72px] leading-none text-primary/15">
+                  {p.n}
+                </p>
+                <h3 className="md:col-span-4 font-display text-[26px] md:text-[38px] tracking-[0.04em] leading-none">
+                  {p.title}
+                </h3>
+                <p className="md:col-span-5 md:col-start-8 text-[14px] md:text-[15px] text-muted leading-relaxed tracking-[0.02em] max-w-[420px]">
+                  {p.body}
+                </p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
-      {/* ── Manifesto ── */}
-      <section className="px-5 md:px-10 py-16 md:py-24 border-b border-primary/10">
-        <h2 className="font-display text-[32px] sm:text-[48px] md:text-[88px] leading-[0.9] tracking-[0.02em] max-w-[820px] mb-8 md:mb-12">
-          THE ONES WHO MOVE DIFFERENT DON'T WAIT FOR PERMISSION.
-        </h2>
-        <Link
-          to="/shop"
-          className="inline-flex items-center gap-3 bg-primary text-text-dark px-6 md:px-8 py-3 md:py-3.5 text-[11px] font-bold tracking-[0.25em] uppercase hover:bg-primary/85 transition-colors duration-200"
+      {/* ══ The work — one image, treated big ══ */}
+      <section className="relative">
+        <div className="relative h-[70vh] md:h-[92vh] overflow-hidden">
+          <img src={workImg} alt="Cokerflux SS25" className="w-full h-full object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-background/20" />
+          <div className="absolute bottom-6 md:bottom-8 left-5 md:left-16 right-5 flex items-end justify-between">
+            <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-primary/70">
+              SS25 — Shot in Lagos
+            </p>
+            <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-primary/40 hidden sm:block">
+              No models. Just us.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ Closing — cropped wordmark + CTA ══ */}
+      <section className="relative px-5 md:px-16 pt-16 md:pt-24 overflow-hidden">
+        <Reveal>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8 md:mb-10">
+            <p className="text-[10px] font-bold tracking-[0.35em] uppercase text-muted max-w-[300px] leading-relaxed">
+              You've read the why. The rest is on the rack.
+            </p>
+            <Link
+              to="/shop"
+              className="group inline-flex items-center gap-3 text-[13px] font-bold tracking-[0.25em] uppercase text-primary border-b border-primary/30 hover:border-primary pb-1 transition-colors duration-200"
+            >
+              Shop the drop
+              <ArrowUpRight size={15} strokeWidth={2.2} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
+        </Reveal>
+        <h2
+          aria-hidden="true"
+          className="font-display text-primary/[0.07] leading-[0.7] tracking-[0.02em] select-none pointer-events-none text-[22vw] translate-y-[12%]"
         >
-          Shop the Collection <ArrowRight size={12} strokeWidth={2.2} />
-        </Link>
+          BUILT DIFFERENT
+        </h2>
       </section>
 
     </main>

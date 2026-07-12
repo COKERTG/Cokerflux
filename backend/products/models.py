@@ -22,7 +22,8 @@ class Product(models.Model):
     ]
 
     name = models.CharField(max_length=120)
-    price = models.PositiveIntegerField()
+    price = models.PositiveIntegerField()          # NGN price
+    price_ghs = models.PositiveIntegerField(default=0)  # GHS price (manually set per product)
     tag = models.CharField(max_length=20, choices=TAG_CHOICES, blank=True, null=True)
     category = models.CharField(max_length=60)
     description = models.TextField()

@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.settings import api_settings as jwt_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import InviteToken, PasswordResetToken
@@ -43,7 +44,13 @@ class LoginAPIView(APIView):
 
 
 class TokenRefreshAPIView(APIView):
-    """POST /api/users/token/refresh/"""
+    """POST /api/users/token/refresh/
+
+    Honours SIMPLE_JWT rotation: when ROTATE_REFRESH_TOKENS is on, the presented
+    refresh token is blacklisted (if BLACKLIST_AFTER_ROTATION) and a fresh refresh
+    token is returned alongside the new access token. Mirrors the logic in
+    simplejwt's TokenRefreshSerializer so the config flags actually take effect here.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -52,7 +59,21 @@ class TokenRefreshAPIView(APIView):
             return Response({'error': 'refresh token required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             refresh = RefreshToken(token)
-            return Response({'access': str(refresh.access_token)})
+            data = {'access': str(refresh.access_token)}
+
+            if jwt_settings.ROTATE_REFRESH_TOKENS:
+                if jwt_settings.BLACKLIST_AFTER_ROTATION:
+                    try:
+                        refresh.blacklist()
+                    except AttributeError:
+                        # blacklist app not installed — nothing to invalidate
+                        pass
+                refresh.set_jti()
+                refresh.set_exp()
+                refresh.set_iat()
+                data['refresh'] = str(refresh)
+
+            return Response(data)
         except TokenError as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 

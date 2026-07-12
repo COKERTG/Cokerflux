@@ -19,14 +19,14 @@ class ProductImageInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline]
-    list_display = ('name', 'category', 'price', 'tag', 'is_active', 'updated_at')
+    list_display = ('name', 'category', 'price', 'price_ghs', 'tag', 'is_active', 'updated_at')
     list_filter = ('category', 'tag', 'is_active')
     search_fields = ('name', 'description')
-    list_editable = ('price', 'tag', 'is_active')
+    list_editable = ('price', 'price_ghs', 'tag', 'is_active')
     readonly_fields = ('created_at', 'updated_at')
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'price', 'tag', 'category', 'image', 'is_active'),
+            'fields': ('name', ('price', 'price_ghs'), 'tag', 'category', 'image', 'is_active'),
         }),
         ('Product Content', {
             'fields': ('description', 'sizes', 'details'),

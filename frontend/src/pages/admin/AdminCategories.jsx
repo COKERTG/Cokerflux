@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Check, Loader2, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { api } from '../../lib/api'
+import {
+  PageHeader, PrimaryButton, Table, THead, Th, Tbody, Tr, Td,
+  Tag, TextInput, IconButton,
+} from '../../admin/ui'
 
 export default function AdminCategories() {
   const [categories, setCategories] = useState([])
@@ -78,40 +82,28 @@ export default function AdminCategories() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-1">Admin</p>
-          <h1 className="font-display text-[36px] leading-none tracking-[0.03em]">CATEGORIES</h1>
-        </div>
-        <button
-          onClick={() => { setAdding(true); setError(null) }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-text-dark text-[10px] font-bold tracking-[0.2em] uppercase hover:bg-primary/85 transition-colors"
-        >
-          <Plus size={13} strokeWidth={2} /> Add Category
-        </button>
-      </div>
+      <PageHeader
+        kicker="Admin"
+        title="CATEGORIES"
+        actions={
+          <PrimaryButton onClick={() => { setAdding(true); setError(null) }} icon={Plus} className="py-2.5 px-5">
+            Add Category
+          </PrimaryButton>
+        }
+      />
 
       {/* Add form */}
       {adding && (
         <div className="flex items-center gap-3 mb-6 p-4 border border-primary/15 bg-surface">
-          <input
+          <TextInput
             autoFocus
             value={newName}
             onChange={e => { setNewName(e.target.value); setError(null) }}
             onKeyDown={e => { if (e.key === 'Enter') handleCreate(); if (e.key === 'Escape') cancelAdd() }}
             placeholder="Category name (e.g. Jackets)"
-            className="flex-1 bg-transparent border-b border-primary/20 pb-1.5 text-[13px] tracking-[0.03em] text-primary placeholder-muted/40 focus:outline-none focus:border-primary/50 transition-colors"
           />
-          <button
-            onClick={handleCreate}
-            disabled={saving || !newName.trim()}
-            className="text-primary hover:text-primary/70 transition-colors disabled:opacity-40"
-          >
-            <Check size={16} strokeWidth={2} />
-          </button>
-          <button onClick={cancelAdd} className="text-muted hover:text-primary transition-colors">
-            <X size={16} strokeWidth={2} />
-          </button>
+          <IconButton icon={Check} size={16} onClick={handleCreate} disabled={saving || !newName.trim()} title="Save" />
+          <IconButton icon={X} size={16} onClick={cancelAdd} title="Cancel" />
           {error && <p className="text-[10px] text-red-400 shrink-0">{error}</p>}
         </div>
       )}
@@ -128,80 +120,58 @@ export default function AdminCategories() {
         </div>
       ) : (
         <div className="border border-primary/10">
-          {/* Table header */}
-          <div className="grid grid-cols-[1fr_80px_110px_72px] px-5 py-3 border-b border-primary/10 bg-surface">
-            {['Name', 'Products', 'Status', ''].map(h => (
-              <p key={h} className="text-[9px] font-bold tracking-[0.3em] uppercase text-muted">{h}</p>
-            ))}
-          </div>
+          <Table>
+            <THead>
+              <Th>Name</Th>
+              <Th className="w-[90px]">Products</Th>
+              <Th className="w-[120px]">Status</Th>
+              <Th className="text-right w-[80px]">Actions</Th>
+            </THead>
+            <Tbody>
+              {categories.map(cat => (
+                <Tr key={cat.id}>
+                  {/* Name / edit inline */}
+                  <Td>
+                    {editingId === cat.id ? (
+                      <div className="flex items-center gap-2">
+                        <TextInput
+                          autoFocus
+                          value={editName}
+                          onChange={e => setEditName(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') handleUpdate(cat.id); if (e.key === 'Escape') cancelEdit() }}
+                          className="w-40"
+                        />
+                        <IconButton icon={Check} onClick={() => handleUpdate(cat.id)} disabled={saving} title="Save" />
+                        <IconButton icon={X} onClick={cancelEdit} title="Cancel" />
+                      </div>
+                    ) : (
+                      <p className="text-[13px] font-bold tracking-[0.04em]">{cat.name}</p>
+                    )}
+                  </Td>
 
-          {categories.map(cat => (
-            <div
-              key={cat.id}
-              className="grid grid-cols-[1fr_80px_110px_72px] px-5 py-4 border-b border-primary/8 last:border-0 items-center hover:bg-surface/50 transition-colors"
-            >
-              {/* Name / edit inline */}
-              <div>
-                {editingId === cat.id ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      autoFocus
-                      value={editName}
-                      onChange={e => setEditName(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') handleUpdate(cat.id); if (e.key === 'Escape') cancelEdit() }}
-                      className="bg-transparent border-b border-primary/40 pb-1 text-[13px] tracking-[0.03em] text-primary focus:outline-none focus:border-primary/70 w-40 transition-colors"
-                    />
-                    <button
-                      onClick={() => handleUpdate(cat.id)}
-                      disabled={saving}
-                      className="text-primary hover:text-primary/70 transition-colors disabled:opacity-40"
-                    >
-                      <Check size={13} strokeWidth={2} />
+                  {/* Product count */}
+                  <Td className="text-muted">{cat.product_count ?? 0}</Td>
+
+                  {/* Status toggle — interactive: click flips is_active */}
+                  <Td>
+                    <button onClick={() => handleToggle(cat)} title={cat.is_active ? 'Deactivate' : 'Activate'} className="group/tag">
+                      <Tag tone={cat.is_active ? 'solid' : 'outline'} className="group-hover/tag:opacity-80 transition-opacity">
+                        {cat.is_active ? 'Active' : 'Inactive'}
+                      </Tag>
                     </button>
-                    <button onClick={cancelEdit} className="text-muted hover:text-primary transition-colors">
-                      <X size={13} strokeWidth={2} />
-                    </button>
-                  </div>
-                ) : (
-                  <p className="text-[13px] font-bold tracking-[0.04em]">{cat.name}</p>
-                )}
-              </div>
+                  </Td>
 
-              {/* Product count */}
-              <p className="text-[12px] text-muted">{cat.product_count ?? 0}</p>
-
-              {/* Status toggle */}
-              <div>
-                <button
-                  onClick={() => handleToggle(cat)}
-                  className={`text-[9px] font-bold tracking-[0.2em] uppercase px-2.5 py-1 border transition-colors duration-150
-                    ${cat.is_active
-                      ? 'border-primary/20 text-primary hover:bg-primary/5'
-                      : 'border-muted/20 text-muted hover:border-primary/20 hover:text-primary'}`}
-                >
-                  {cat.is_active ? 'Active' : 'Inactive'}
-                </button>
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => startEdit(cat)}
-                  className="text-muted hover:text-primary transition-colors"
-                  title="Rename"
-                >
-                  <Pencil size={13} strokeWidth={1.6} />
-                </button>
-                <button
-                  onClick={() => handleDelete(cat.id)}
-                  className="text-muted hover:text-red-400 transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 size={13} strokeWidth={1.6} />
-                </button>
-              </div>
-            </div>
-          ))}
+                  {/* Actions */}
+                  <Td>
+                    <div className="flex items-center justify-end gap-1">
+                      <IconButton icon={Pencil} onClick={() => startEdit(cat)} title="Rename" />
+                      <IconButton icon={Trash2} tone="danger" onClick={() => handleDelete(cat.id)} title="Delete" />
+                    </div>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
         </div>
       )}
     </div>

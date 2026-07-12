@@ -1,8 +1,20 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from .models import InviteToken, PasswordResetToken
+
+
+def _run_password_validators(value):
+    """Run Django's AUTH_PASSWORD_VALIDATORS and re-raise as a DRF error so the
+    configured strength rules are enforced wherever a password is set."""
+    try:
+        validate_password(value)
+    except DjangoValidationError as e:
+        raise serializers.ValidationError(list(e.messages))
+    return value
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -68,6 +80,9 @@ class AcceptInviteSerializer(serializers.Serializer):
             raise serializers.ValidationError('Username already taken.')
         return value
 
+    def validate_password(self, value):
+        return _run_password_validators(value)
+
 
 class InviteListSerializer(serializers.ModelSerializer):
     invited_by = serializers.CharField(source='invited_by.username', read_only=True)
@@ -97,3 +112,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         if not reset_token.is_valid:
             raise serializers.ValidationError('This reset link has expired or already been used.')
         return value
+
+    def validate_password(self, value):
+        return _run_password_validators(value)

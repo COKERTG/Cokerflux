@@ -2,11 +2,16 @@ import { useEffect, useState } from 'react'
 import { Send, Clock, CheckCircle, XCircle, Trash2, PowerOff, Power, ShieldCheck, ShieldMinus } from 'lucide-react'
 import { api } from '../../lib/api'
 import { useAuth } from '../../context/AuthContext'
+import {
+  PageHeader, Tag, Banner, Field, TextInput, SelectField, PrimaryButton, IconButton,
+} from '../../admin/ui'
 
-const ROLE_COLORS = {
-  owner: 'bg-primary/20 text-primary',
-  admin: 'bg-primary/10 text-primary/80',
-  staff: 'bg-surface text-muted border border-primary/15',
+// Owner reads as the strongest chip, admin a step down, staff a quiet outline —
+// mapped onto the shared Tag tones instead of a bespoke colour table.
+const ROLE_TONE = {
+  owner: 'solid',
+  admin: 'subtle',
+  staff: 'outline',
 }
 
 function fmtDate(iso) {
@@ -136,10 +141,7 @@ export default function AdminStaff() {
 
   return (
     <div>
-      <div className="mb-8">
-        <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-2">Manage</p>
-        <h1 className="font-display text-[44px] leading-none tracking-[0.03em]">STAFF</h1>
-      </div>
+      <PageHeader kicker="Manage" title="STAFF" />
 
       <div className="grid md:grid-cols-3 gap-8">
 
@@ -180,9 +182,9 @@ export default function AdminStaff() {
                     </div>
 
                     {/* Role */}
-                    <span className={`text-[9px] font-bold tracking-[0.2em] uppercase px-2 py-1 shrink-0 ${ROLE_COLORS[s.role] || ROLE_COLORS.staff}`}>
-                      {s.role}
-                    </span>
+                    <div className="shrink-0">
+                      <Tag tone={ROLE_TONE[s.role] || 'outline'}>{s.role}</Tag>
+                    </div>
 
                     {/* Last login */}
                     <div className="hidden lg:block shrink-0 text-right">
@@ -268,13 +270,7 @@ export default function AdminStaff() {
                             </button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setConfirmId(s.id)}
-                            title="Remove staff member"
-                            className="p-1.5 text-muted hover:text-red-400 transition-colors"
-                          >
-                            <Trash2 size={13} strokeWidth={1.8} />
-                          </button>
+                          <IconButton icon={Trash2} tone="danger" onClick={() => setConfirmId(s.id)} title="Remove staff member" />
                         )}
                       </div>
                     )}
@@ -305,7 +301,7 @@ export default function AdminStaff() {
                     </div>
 
                     <p className="flex-1 text-[12px] text-muted tracking-[0.03em] truncate">{inv.email}</p>
-                    <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-muted/60">{inv.role}</span>
+                    <Tag tone="outline">{inv.role}</Tag>
 
                     <span className={`text-[9px] font-bold tracking-[0.15em] uppercase shrink-0 ${inv.is_used ? 'text-green-400' : inv.is_expired ? 'text-red-400/60' : 'text-muted'}`}>
                       {inv.is_used ? 'Accepted' : inv.is_expired ? 'Expired' : 'Pending'}
@@ -313,14 +309,14 @@ export default function AdminStaff() {
 
                     {/* Revoke — only for pending */}
                     {!inv.is_used && !inv.is_expired && (
-                      <button
+                      <IconButton
+                        icon={XCircle}
+                        tone="danger"
                         onClick={() => handleRevokeInvite(inv.id)}
                         disabled={actionLoad[`inv_${inv.id}`]}
                         title="Revoke invite"
-                        className="p-1 text-muted hover:text-red-400 transition-colors disabled:opacity-40 shrink-0"
-                      >
-                        <XCircle size={13} strokeWidth={1.6} />
-                      </button>
+                        className="shrink-0"
+                      />
                     )}
                   </div>
                 ))}
@@ -333,46 +329,29 @@ export default function AdminStaff() {
         <div>
           <p className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted mb-4">Send Invite</p>
           <div className="border border-primary/10 p-6">
-            {success && (
-              <div className="mb-5 px-4 py-3 border border-green-500/20 bg-green-500/5 text-[11px] text-green-400 tracking-[0.04em]">
-                {success}
-              </div>
-            )}
-            {error && (
-              <div className="mb-5 px-4 py-3 border border-red-500/20 bg-red-500/5 text-[11px] text-red-400 tracking-[0.04em]">
-                {error}
-              </div>
-            )}
+            {success && <div className="mb-5"><Banner tone="success">{success}</Banner></div>}
+            {error   && <div className="mb-5"><Banner tone="error">{error}</Banner></div>}
 
             <form onSubmit={handleInvite} className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted">Email</label>
-                <input
+              <Field label="Email">
+                <TextInput
                   required type="email"
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="staff@example.com"
-                  className="bg-transparent border-b border-primary/20 pb-2 text-[13px] tracking-[0.03em] text-primary placeholder-muted/30 focus:outline-none focus:border-primary/50 transition-colors"
                 />
-              </div>
+              </Field>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold tracking-[0.25em] uppercase text-muted">Role</label>
-                <select
-                  value={form.role}
-                  onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-                  className="bg-surface border border-primary/20 px-3 py-2 text-[12px] tracking-[0.04em] text-primary focus:outline-none focus:border-primary/50 transition-colors"
-                >
+              <Field label="Role">
+                <SelectField value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
                   {canInviteAdmin && <option value="admin">Admin</option>}
                   <option value="staff">Staff</option>
-                </select>
-              </div>
+                </SelectField>
+              </Field>
 
-              <button type="submit" disabled={sending}
-                className="w-full inline-flex items-center justify-center gap-2 bg-primary text-text-dark py-3 text-[10px] font-bold tracking-[0.22em] uppercase hover:bg-primary/85 transition-colors disabled:opacity-50">
-                <Send size={12} strokeWidth={2} />
-                {sending ? 'Sending...' : 'Send Invite'}
-              </button>
+              <PrimaryButton type="submit" disabled={sending} icon={Send} className="w-full py-3">
+                {sending ? 'Sending…' : 'Send Invite'}
+              </PrimaryButton>
             </form>
 
             <div className="mt-6 pt-5 border-t border-primary/8">

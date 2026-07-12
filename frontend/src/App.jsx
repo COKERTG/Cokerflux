@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { CurrencyProvider } from './context/CurrencyContext';
+import { SettingsProvider } from './context/SettingsContext';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext'
 import { ProductProvider } from './context/ProductContext'
@@ -21,6 +22,7 @@ import AdminProducts from './pages/admin/AdminProducts'
 import AdminProductForm from './pages/admin/AdminProductForm'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminStaff from './pages/admin/AdminStaff'
+import AdminSettings from './pages/admin/AdminSettings'
 import ForgotPassword from './pages/admin/ForgotPassword'
 import ResetPassword from './pages/admin/ResetPassword'
 import AcceptInvite from './pages/AcceptInvite'
@@ -54,6 +56,7 @@ function AppRoutes() {
           <Route path="products/:id/edit" element={<AdminProductForm />} />
           <Route path="categories" element={<ProtectedRoute managerOnly><AdminCategories /></ProtectedRoute>} />
           <Route path="staff" element={<ProtectedRoute managerOnly><AdminStaff /></ProtectedRoute>} />
+          <Route path="settings" element={<ProtectedRoute managerOnly><AdminSettings /></ProtectedRoute>} />
         </Route>
       </Routes>
     )
@@ -94,11 +97,13 @@ export default function App() {
   return (
     <AuthProvider>
       <CurrencyProvider>
-        <CartProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </CartProvider>
+        <SettingsProvider>
+          <CartProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </CartProvider>
+        </SettingsProvider>
       </CurrencyProvider>
     </AuthProvider>
   )

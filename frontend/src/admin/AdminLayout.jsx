@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Package, Users, Tag, LogOut, ChevronRight, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Package, Users, Tag, Settings, LogOut, ChevronRight, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function AdminLayout() {
@@ -11,8 +11,9 @@ export default function AdminLayout() {
     { to: '/admin/dashboard',   icon: LayoutDashboard, label: 'Dashboard'  },
     { to: '/admin/products',    icon: Package,         label: 'Products'   },
     ...(canManage ? [
-      { to: '/admin/categories', icon: Tag,   label: 'Categories' },
-      { to: '/admin/staff',      icon: Users, label: 'Staff'      },
+      { to: '/admin/categories', icon: Tag,      label: 'Categories' },
+      { to: '/admin/staff',      icon: Users,    label: 'Staff'      },
+      { to: '/admin/settings',   icon: Settings, label: 'Settings'   },
     ] : []),
   ]
   const navigate = useNavigate()
@@ -50,29 +51,42 @@ export default function AdminLayout() {
           </button>
         </div>
 
-        <nav className="flex-1 py-4">
+        <nav className="flex-1 py-5">
+          <p className="px-6 mb-2 text-[8px] font-bold tracking-[0.3em] uppercase text-muted/40">Menu</p>
           {nav.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-6 py-3 text-[11px] font-bold tracking-[0.18em] uppercase transition-all duration-200 group
+                `relative flex items-center gap-3 px-6 py-3 text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-200 group
                 ${isActive
-                  ? 'text-primary bg-background/50 border-r-2 border-primary'
+                  ? 'text-primary bg-background/50'
                   : 'text-muted hover:text-primary hover:bg-background/30'}`
               }
             >
-              <Icon size={14} strokeWidth={1.8} />
-              {label}
+              {({ isActive }) => (
+                <>
+                  {/* Left accent bar — the sidebar's active affordance, deliberately unlike
+                      the storefront nav's underline-on-hover. */}
+                  <span className={`absolute left-0 top-0 bottom-0 w-[2px] bg-primary transition-transform duration-200 origin-top ${isActive ? 'scale-y-100' : 'scale-y-0 group-hover:scale-y-100 group-hover:bg-primary/30'}`} />
+                  <Icon size={14} strokeWidth={1.8} className="shrink-0" />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
 
         <div className="px-6 py-5 border-t border-primary/10">
-          <div className="mb-3">
-            <p className="text-[11px] font-bold tracking-[0.08em] truncate">{user?.username}</p>
-            <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-muted">{user?.role}</span>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-background border border-primary/15 flex items-center justify-center shrink-0">
+              <span className="font-display text-[13px] tracking-[0.05em]">{user?.username?.[0]?.toUpperCase()}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold tracking-[0.08em] truncate">{user?.username}</p>
+              <span className="text-[9px] font-bold tracking-[0.2em] uppercase text-muted">{user?.role}</span>
+            </div>
           </div>
           <button
             onClick={handleLogout}

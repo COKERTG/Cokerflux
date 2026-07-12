@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useSettings } from '../context/SettingsContext';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 
 // Helper to format a WhatsApp message with the cart contents
@@ -10,11 +11,12 @@ const formatWhatsAppMessage = (items, formatPrice) => {
     const name = i.product.name;
     const size = i.product.selectedSize ? ` (${i.product.selectedSize})` : '';
     const qty = i.quantity;
-    const price = formatPrice(i.product.price * i.quantity);
+    const price = formatPrice(i.product.price * qty, (i.product.price_ghs || 0) * qty);
     return `*${name}${size}* – Qty: ${qty} – ${price}`;
   });
-  const total = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-  const totalStr = formatPrice(total);
+  const totalNgn = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const totalGhs = items.reduce((sum, i) => sum + (i.product.price_ghs || 0) * i.quantity, 0);
+  const totalStr = formatPrice(totalNgn, totalGhs);
   return `Hello! I would like to place an order:\n\n${lines.join('\n')}\n\n*Total:* ${totalStr}`;
 };
 
@@ -27,7 +29,8 @@ const formatWhatsAppMessage = (items, formatPrice) => {
  */
 export default function CartModal({ isOpen, onClose }) {
   const { items, removeItem, updateQuantity, clearCart } = useCart();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, currency } = useCurrency();
+  const { whatsappNumberFor } = useSettings();
   const [visible, setVisible] = useState(false);
 
   // Animate open/close
@@ -61,11 +64,13 @@ export default function CartModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const whatsappNumber = '+2347045036178';
+  // Pick the market number from store settings based on the active currency.
+  const whatsappNumber = whatsappNumberFor(currency);
   const message = encodeURIComponent(formatWhatsAppMessage(items, formatPrice));
-  const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[+\s]/g, '')}?text=${message}`;
+  const whatsappUrl = `https://wa.me/${whatsappNumber.replace(/[^\d]/g, '')}?text=${message}`;
 
   const total = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+  const totalGhs = items.reduce((sum, i) => sum + (i.product.price_ghs || 0) * i.quantity, 0);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
@@ -170,7 +175,7 @@ export default function CartModal({ isOpen, onClose }) {
 
                       {/* Price */}
                       <p className="text-[13px] font-bold tracking-[0.04em]">
-                        {formatPrice(i.product.price * i.quantity)}
+                        {formatPrice(i.product.price * i.quantity, (i.product.price_ghs || 0) * i.quantity)}
                       </p>
                     </div>
                   </div>
@@ -198,7 +203,7 @@ export default function CartModal({ isOpen, onClose }) {
                 Subtotal
               </span>
               <span className="text-[18px] font-bold tracking-[0.04em]">
-                {formatPrice(total)}
+                {formatPrice(total, totalGhs)}
               </span>
             </div>
 

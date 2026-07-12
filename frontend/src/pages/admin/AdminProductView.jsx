@@ -1,27 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil, Crown, CheckCircle2, XCircle, Tag, Layers, Info, Image as ImageIcon, Loader2 } from 'lucide-react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Pencil, Crown, Tag as TagIcon, Layers, Info, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { api } from '../../lib/api'
+import { Panel, ProductTag, StatusTag, PrimaryButton, GhostButton, IconButton } from '../../admin/ui'
 
-const TAG_COLORS = {
-  New:     'bg-primary/15 text-primary',
-  SS25:    'bg-primary/8 text-primary/70',
-  Limited: 'bg-red-500/15 text-red-400',
-}
-
-function Section({ icon: Icon, title, children }) {
-  return (
-    <div className="border border-primary/10 bg-surface/40">
-      <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-primary/10 bg-surface">
-        <Icon size={13} strokeWidth={1.8} className="text-muted" />
-        <p className="text-[10px] font-bold tracking-[0.28em] uppercase text-muted">{title}</p>
-      </div>
-      <div className="p-5">{children}</div>
-    </div>
-  )
-}
-
-function Field({ label, value, children }) {
+// Read-only spec field (label over value). This is a *display* primitive — distinct
+// from ui.jsx's form Field (label over an input), so it stays local by design.
+function Spec({ label, value, children }) {
   return (
     <div className="flex flex-col gap-1">
       <p className="text-[9px] font-bold tracking-[0.28em] uppercase text-muted/60">{label}</p>
@@ -66,9 +51,7 @@ export default function AdminProductView() {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
         <p className="font-display text-[28px] tracking-[0.04em] text-muted">PRODUCT NOT FOUND</p>
-        <button onClick={() => navigate('/admin/products')} className="text-[11px] font-bold tracking-[0.2em] uppercase text-muted hover:text-primary transition-colors">
-          ← Back to Products
-        </button>
+        <GhostButton onClick={() => navigate('/admin/products')}>← Back to Products</GhostButton>
       </div>
     )
   }
@@ -81,12 +64,7 @@ export default function AdminProductView() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8 gap-4">
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate('/admin/products')}
-            className="text-muted hover:text-primary transition-colors duration-200"
-          >
-            <ArrowLeft size={16} strokeWidth={1.6} />
-          </button>
+          <IconButton icon={ArrowLeft} size={16} onClick={() => navigate('/admin/products')} title="Back to products" />
           <div>
             <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-1">Product #{product.id}</p>
             <h1 className="font-display text-[32px] md:text-[40px] leading-none tracking-[0.03em]">
@@ -95,12 +73,7 @@ export default function AdminProductView() {
           </div>
         </div>
 
-        <Link
-          to={`/admin/products/${id}/edit`}
-          className="inline-flex items-center gap-2 bg-primary text-text-dark px-4 py-2.5 text-[10px] font-bold tracking-[0.22em] uppercase hover:bg-primary/85 transition-colors duration-200 shrink-0"
-        >
-          <Pencil size={11} strokeWidth={2.2} /> Edit
-        </Link>
+        <PrimaryButton to={`/admin/products/${id}/edit`} icon={Pencil} className="py-2.5 px-4 shrink-0">Edit</PrimaryButton>
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">
@@ -109,7 +82,7 @@ export default function AdminProductView() {
         <div className="flex flex-col gap-5">
 
           {/* Images */}
-          <Section icon={ImageIcon} title={`Images (${images.length})`}>
+          <Panel icon={ImageIcon} title={`Images (${images.length})`}>
             {images.length === 0 ? (
               <p className="text-[11px] text-muted/50 tracking-[0.1em]">No images uploaded</p>
             ) : (
@@ -145,10 +118,10 @@ export default function AdminProductView() {
                 )}
               </div>
             )}
-          </Section>
+          </Panel>
 
           {/* Sizes */}
-          <Section icon={Layers} title="Available Sizes">
+          <Panel icon={Layers} title="Available Sizes">
             {product.sizes?.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {product.sizes.map(s => (
@@ -160,7 +133,7 @@ export default function AdminProductView() {
             ) : (
               <p className="text-[11px] text-muted/50 tracking-[0.1em]">No sizes specified</p>
             )}
-          </Section>
+          </Panel>
 
         </div>
 
@@ -168,49 +141,39 @@ export default function AdminProductView() {
         <div className="flex flex-col gap-5">
 
           {/* Core details */}
-          <Section icon={Tag} title="Product Details">
+          <Panel icon={TagIcon} title="Product Details">
             <div className="grid grid-cols-2 gap-5">
 
-              <Field label="Price">
+              <Spec label="Price">
                 <p className="text-[18px] font-bold tracking-[0.02em] text-primary">
                   ₦{Number(product.price).toLocaleString()}
                 </p>
-              </Field>
+              </Spec>
 
-              <Field label="Category">
+              <Spec label="Category">
                 <p className="text-[13px] tracking-[0.05em] uppercase font-bold text-primary">
                   {product.category || '—'}
                 </p>
-              </Field>
+              </Spec>
 
-              <Field label="Tag">
-                {product.tag
-                  ? <span className={`inline-block text-[9px] font-bold tracking-[0.2em] uppercase px-2 py-1 ${TAG_COLORS[product.tag] || 'bg-primary/8 text-muted'}`}>{product.tag}</span>
-                  : <span className="text-muted/40 text-[12px]">— None —</span>
-                }
-              </Field>
+              <Spec label="Tag">
+                <ProductTag>{product.tag}</ProductTag>
+              </Spec>
 
-              <Field label="Status">
-                {product.is_active
-                  ? <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.1em] uppercase text-green-400">
-                      <CheckCircle2 size={12} strokeWidth={2} /> Active
-                    </span>
-                  : <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.1em] uppercase text-muted">
-                      <XCircle size={12} strokeWidth={2} /> Inactive
-                    </span>
-                }
-              </Field>
+              <Spec label="Status">
+                <StatusTag active={product.is_active} />
+              </Spec>
 
-              <Field label="Product ID">
+              <Spec label="Product ID">
                 <p className="text-[11px] font-mono text-muted">{product.id}</p>
-              </Field>
+              </Spec>
 
               {product.created_at && (
-                <Field label="Created">
+                <Spec label="Created">
                   <p className="text-[11px] text-muted">
                     {new Date(product.created_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
-                </Field>
+                </Spec>
               )}
             </div>
 
@@ -221,10 +184,10 @@ export default function AdminProductView() {
                 {product.description || '—'}
               </p>
             </div>
-          </Section>
+          </Panel>
 
           {/* Bullet details */}
-          <Section icon={Info} title="Product Bullet Points">
+          <Panel icon={Info} title="Product Bullet Points">
             {product.details?.length > 0 ? (
               <ul className="flex flex-col gap-2.5">
                 {product.details.map((d, i) => (
@@ -237,25 +200,15 @@ export default function AdminProductView() {
             ) : (
               <p className="text-[11px] text-muted/50 tracking-[0.1em]">No bullet points added</p>
             )}
-          </Section>
+          </Panel>
 
         </div>
       </div>
 
       {/* Footer actions */}
       <div className="flex items-center gap-4 mt-8 pt-6 border-t border-primary/10">
-        <Link
-          to={`/admin/products/${id}/edit`}
-          className="inline-flex items-center gap-2 bg-primary text-text-dark px-6 py-3 text-[10px] font-bold tracking-[0.22em] uppercase hover:bg-primary/85 transition-colors duration-200"
-        >
-          <Pencil size={11} strokeWidth={2.2} /> Edit Product
-        </Link>
-        <button
-          onClick={() => navigate('/admin/products')}
-          className="px-6 py-3 border border-primary/20 text-[10px] font-bold tracking-[0.2em] uppercase text-muted hover:text-primary hover:border-primary/40 transition-colors duration-200"
-        >
-          ← Back to Products
-        </button>
+        <PrimaryButton to={`/admin/products/${id}/edit`} icon={Pencil}>Edit Product</PrimaryButton>
+        <GhostButton onClick={() => navigate('/admin/products')}>← Back to Products</GhostButton>
       </div>
 
     </div>

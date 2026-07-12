@@ -167,7 +167,7 @@ export default function ProductDetail() {
               {product.name.toUpperCase()}
             </h1>
             <p className="text-[20px] md:text-[22px] font-bold tracking-[0.04em]">
-              {formatPrice(product.price)}
+              {formatPrice(product.price, product.price_ghs)}
             </p>
           </div>
 
@@ -293,7 +293,7 @@ export default function ProductDetail() {
                 <div className="px-3 md:px-5 py-3 md:py-4 flex items-center justify-between border-t border-primary/8">
                   <div className="min-w-0">
                     <p className="text-[11px] md:text-[12px] font-bold tracking-[0.08em] uppercase mb-0.5 truncate">{p.name}</p>
-                    <p className="text-[11px] md:text-[12px] text-muted tracking-[0.04em]">{formatPrice(p.price)}</p>
+                    <p className="text-[11px] md:text-[12px] text-muted tracking-[0.04em]">{formatPrice(p.price, p.price_ghs)}</p>
                   </div>
                   <span className="w-7 h-7 md:w-8 md:h-8 border border-primary/15 flex items-center justify-center text-primary/30 group-hover:text-primary group-hover:border-primary/50 transition-all duration-200 shrink-0 ml-1">
                     <ArrowRight size={12} strokeWidth={1.5} />

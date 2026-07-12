@@ -15,47 +15,51 @@ export default function SizingGuide() {
   ]
 
   return (
-    <main className="bg-background text-primary min-h-screen">
+    <main className="bg-background text-primary min-h-screen overflow-x-clip">
 
       {/* ── Banner ── */}
-      <section className="px-5 md:px-10 py-10 md:py-16 border-b border-primary/10">
-        <p className="text-[10px] font-bold tracking-[0.35em] text-muted uppercase mb-3">
+      <section className="px-5 md:px-16 pt-14 md:pt-24 pb-10 md:pb-16 border-b border-primary/10">
+        <p className="text-[10px] font-bold tracking-[0.4em] text-primary/55 uppercase mb-5">
           Fit Guide
         </p>
-        <h1 className="font-display text-[48px] sm:text-[70px] md:text-[110px] leading-[0.88] tracking-[0.02em]">
+        <h1 className="font-display text-[52px] sm:text-[80px] md:text-[128px] leading-[0.82] tracking-[0.01em] -ml-[2px]">
           SIZING<br />GUIDE
         </h1>
       </section>
 
       {/* ── Intro ── */}
-      <section className="px-5 md:px-10 py-8 md:py-12 border-b border-primary/10 max-w-[700px]">
-        <p className="text-[13px] md:text-[14px] text-muted leading-relaxed tracking-[0.03em]">
-          Find the perfect fit for every Cokerflux piece. Our clothing follows a standard unisex sizing chart, but you may want to size up or down depending on your preference.
+      <section className="px-5 md:px-16 py-8 md:py-12 border-b border-primary/10 max-w-[720px]">
+        <p className="text-[14px] md:text-[15px] text-primary/75 leading-relaxed tracking-[0.02em]">
+          Find the perfect fit for every Cokerflux piece. Our clothing follows a standard unisex
+          sizing chart, but you may want to size up or down depending on your preference.
         </p>
       </section>
 
       {/* ── How to measure ── */}
-      <section className="px-4 md:px-10 py-8 md:py-12 border-b border-primary/10">
-        <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-6 md:mb-8 px-1">Measurement Basics</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-primary/8 max-w-[700px]">
+      <section className="px-5 md:px-16 py-10 md:py-16 border-b border-primary/10">
+        <p className="text-[10px] font-bold tracking-[0.35em] text-muted uppercase mb-6 md:mb-8">Measurement Basics</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-primary/8 max-w-[720px]">
           {tips.map(tip => (
             <div key={tip.label} className="bg-background p-5 md:p-6">
               <p className="text-[12px] md:text-[13px] font-bold tracking-[0.08em] uppercase mb-1.5">{tip.label}</p>
-              <p className="text-[11px] md:text-[12px] text-muted tracking-[0.03em]">{tip.desc}</p>
+              <p className="text-[12px] md:text-[13px] text-muted tracking-[0.03em]">{tip.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Size chart ── */}
-      <section className="px-4 md:px-10 py-8 md:py-12">
-        <p className="text-[10px] font-bold tracking-[0.3em] text-muted uppercase mb-6 md:mb-8 px-1">Size Chart (Inches)</p>
-        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-          <table className="w-full max-w-[600px] min-w-[320px]">
+      {/* ── Size chart ── (data table: kept, tokenised — sharp edges, thin dividers) */}
+      <section className="px-5 md:px-16 py-10 md:py-16">
+        <p className="text-[10px] font-bold tracking-[0.35em] text-muted uppercase mb-6 md:mb-8">Size Chart (Inches)</p>
+        <div className="overflow-x-auto -mx-5 px-5 md:mx-0 md:px-0">
+          <table className="w-full max-w-[640px] min-w-[340px] border-collapse">
             <thead>
-              <tr className="border-b-2 border-primary">
+              <tr className="border-b border-primary/25">
                 {['Size', 'Chest', 'Waist', 'Hip'].map(h => (
-                  <th key={h} className="py-3 px-3 md:px-4 text-left text-[10px] font-bold tracking-[0.2em] uppercase text-muted">
+                  <th
+                    key={h}
+                    className="py-3 px-3 md:px-4 text-left font-display text-[18px] md:text-[22px] font-normal tracking-[0.06em] text-primary/90"
+                  >
                     {h}
                   </th>
                 ))}
@@ -63,19 +67,20 @@ export default function SizingGuide() {
             </thead>
             <tbody>
               {sizes.map(row => (
-                <tr key={row.size} className="border-b border-primary/10 hover:bg-surface/40 transition-colors duration-150">
-                  <td className="py-3 px-3 md:px-4 text-[12px] md:text-[13px] font-bold tracking-[0.08em]">{row.size}</td>
-                  <td className="py-3 px-3 md:px-4 text-[12px] md:text-[13px] text-muted tracking-[0.04em]">{row.chest}</td>
-                  <td className="py-3 px-3 md:px-4 text-[12px] md:text-[13px] text-muted tracking-[0.04em]">{row.waist}</td>
-                  <td className="py-3 px-3 md:px-4 text-[12px] md:text-[13px] text-muted tracking-[0.04em]">{row.hip}</td>
+                <tr key={row.size} className="border-b border-primary/8 hover:bg-surface/40 transition-colors duration-150">
+                  <td className="py-3.5 px-3 md:px-4 text-[13px] md:text-[14px] font-bold tracking-[0.1em] uppercase">{row.size}</td>
+                  <td className="py-3.5 px-3 md:px-4 text-[13px] md:text-[14px] text-muted tracking-[0.04em]">{row.chest}</td>
+                  <td className="py-3.5 px-3 md:px-4 text-[13px] md:text-[14px] text-muted tracking-[0.04em]">{row.waist}</td>
+                  <td className="py-3.5 px-3 md:px-4 text-[13px] md:text-[14px] text-muted tracking-[0.04em]">{row.hip}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <p className="text-[12px] md:text-[13px] text-muted leading-relaxed tracking-[0.03em] mt-8 md:mt-10 max-w-[500px]">
-          If you're between sizes, we generally recommend sizing up for a more relaxed fit. For a tighter, street‑wear look, size down.
+        <p className="text-[12px] md:text-[13px] text-muted leading-relaxed tracking-[0.03em] mt-8 md:mt-10 max-w-[520px]">
+          If you're between sizes, we generally recommend sizing up for a more relaxed fit. For a
+          tighter, street‑wear look, size down.
         </p>
       </section>
 

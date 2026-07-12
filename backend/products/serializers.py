@@ -47,6 +47,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'price',
+            'price_ghs',
             'tag',
             'category',
             'image',
@@ -80,6 +81,7 @@ class ProductWriteSerializer(serializers.ModelSerializer):
         fields = (
             'name',
             'price',
+            'price_ghs',
             'tag',
             'category',
             'description',

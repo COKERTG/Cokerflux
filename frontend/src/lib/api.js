@@ -16,7 +16,10 @@ async function refreshAccess() {
   })
   if (!res.ok) { clearTokens(); throw new Error('session expired') }
   const data = await res.json()
-  setTokens({ ...tokens, access: data.access })
+  // Refresh tokens rotate server-side (SIMPLE_JWT ROTATE_REFRESH_TOKENS): the old
+  // one is blacklisted and a new one returned, so persist it or the next refresh
+  // would present a dead token and force a logout.
+  setTokens({ ...tokens, access: data.access, ...(data.refresh ? { refresh: data.refresh } : {}) })
   return data.access
 }
 
@@ -54,6 +57,9 @@ function withQuery(path, params) {
 
 export const api = {
   getDashboard:  ()           => req('/dashboard/'),
+  detectLocation: ()          => fetch(`${BASE}/detect-location/`),
+  getSettings:   ()           => fetch(`${BASE}/settings/`),
+  updateSettings: (data)      => req('/settings/', { method: 'PATCH', body: JSON.stringify(data) }),
   sendContactMessage: (data)  => fetch(`${BASE}/contact/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }),
 
   login:         (u, p)       => fetch(`${BASE}/users/login/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p }) }),

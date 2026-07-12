@@ -1,61 +1,67 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { api } from '../lib/api'
 
-const FALLBACK_RATE = 0.068 // 1 NGN ≈ 0.068 GHS (static fallback if fetch fails)
+const DEFAULT_CURRENCY = 'NGN' // shown to visitors outside NG/GH
 
 const CurrencyContext = createContext(null)
-const RATE_CACHE_KEY = 'cf_currency_rate'
-const RATE_CACHE_TTL = 24 * 60 * 60 * 1000
 
-function readCachedRate() {
+const CURRENCY_CACHE_KEY = 'cf_currency' // detected-currency cache (avoids re-detecting each load)
+const CURRENCY_CACHE_TTL = 7 * 24 * 60 * 60 * 1000
+
+function readCachedCurrency() {
   try {
-    const cached = JSON.parse(localStorage.getItem(RATE_CACHE_KEY))
-    if (!cached?.rate || !cached?.savedAt) return null
-    if (Date.now() - cached.savedAt > RATE_CACHE_TTL) return null
-    return cached.rate
+    const cached = JSON.parse(localStorage.getItem(CURRENCY_CACHE_KEY))
+    if (!cached?.currency || !cached?.savedAt) return null
+    if (Date.now() - cached.savedAt > CURRENCY_CACHE_TTL) return null
+    return cached.currency
   } catch {
     return null
   }
 }
 
 export function CurrencyProvider({ children }) {
-  const [currency, setCurrency] = useState('NGN')
-  const [rate, setRate]         = useState(() => readCachedRate() || FALLBACK_RATE)
-  const [loading, setLoading]   = useState(() => !readCachedRate())
+  // Currency is auto-detected from location — start from cache (or default) and
+  // confirm via the backend once if we've never detected it.
+  const [currency, setCurrency] = useState(() => readCachedCurrency() || DEFAULT_CURRENCY)
 
+  // ── Auto-detect currency from the visitor's country (once, then cached) ──
   useEffect(() => {
-    const cached = readCachedRate()
-    if (cached) return
+    if (readCachedCurrency()) return // already detected — don't re-fetch
 
-    async function fetchRate() {
+    let cancelled = false
+    async function detectCurrency() {
       try {
-        const r    = await fetch('https://api.exchangerate-api.com/v4/latest/NGN')
-        const data = await r.json()
-        if (data?.rates?.GHS) {
-          setRate(data.rates.GHS)
-          localStorage.setItem(RATE_CACHE_KEY, JSON.stringify({
-            rate: data.rates.GHS,
-            savedAt: Date.now(),
-          }))
-        }
+        const res = await api.detectLocation()
+        if (!res.ok) return
+        const data = await res.json()
+        const detected = data?.currency === 'GHS' ? 'GHS' : 'NGN' // guard: only these two
+        if (cancelled) return
+        setCurrency(detected)
+        localStorage.setItem(CURRENCY_CACHE_KEY, JSON.stringify({
+          currency: detected,
+          country: data?.country_code || null,
+          savedAt: Date.now(),
+        }))
       } catch {
-        // use fallback rate
-      } finally {
-        setLoading(false)
+        // network/geo failure — keep DEFAULT_CURRENCY (not cached, so we retry next load)
       }
     }
-    fetchRate()
+    detectCurrency()
+    return () => { cancelled = true }
   }, [])
 
-  function formatPrice(ngnAmount) {
+  // Prices are stored per product in both currencies — pick the field, don't convert.
+  // Pass both amounts (single product, or pre-summed cart totals).
+  function formatPrice(ngnAmount, ghsAmount = 0) {
     if (currency === 'GHS') {
-      const ghs = ngnAmount * rate
-      return `GH₵${ghs.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      const ghs = Number(ghsAmount) || 0
+      return `GH₵${ghs.toLocaleString('en-GH')}`
     }
-    return `₦${ngnAmount.toLocaleString('en-NG')}`
+    return `₦${(Number(ngnAmount) || 0).toLocaleString('en-NG')}`
   }
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency, formatPrice, loading }}>
+    <CurrencyContext.Provider value={{ currency, formatPrice }}>
       {children}
     </CurrencyContext.Provider>
   )
