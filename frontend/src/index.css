@@ -25,6 +25,14 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.05em;
 }
 
+/* Backdrop for transparent-PNG product shots: surface (#2e2e2e) glows from the
+   center and fades to the card base (#232323) at the edges. The darker frame keeps
+   light-colored garments from washing out. Single source of truth so every
+   ProductCard / product image stays identical. */
+.product-backdrop {
+  background: radial-gradient(ellipse 100% 100% at 50% 42%, #2e2e2e 0%, #292929 52%, #232323 100%);
+}
+
 @keyframes ticker {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }

@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, ArrowRight, Loader2 } from 'lucide-react'
-import { useCurrency } from '../context/CurrencyContext'
 import { useProducts } from '../context/productContextValue'
 import hero from '../assets/hero.webp'
-import ProductImage from '../components/ProductImage'
+import ProductCard from '../components/ProductCard'
 import Reveal from '../components/Reveal'
 
 const marqueeItems = [
@@ -11,7 +10,6 @@ const marqueeItems = [
 ]
 
 export default function HomePage() {
-  const { formatPrice } = useCurrency()
   const { products, loading } = useProducts()
 
   const featured = products.slice(0, 5)
@@ -137,45 +135,7 @@ export default function HomePage() {
                   delay={Math.min(i, 4) * 55}
                   className={big ? 'col-span-2 md:row-span-2' : 'col-span-1'}
                 >
-                  <Link
-                    to={`/product/${p.id}`}
-                    className="group relative block w-full h-full bg-background overflow-hidden"
-                  >
-                    <ProductImage
-                      src={p.image}
-                      alt={p.name}
-                      wrapperClassName="w-full h-full"
-                      className="w-full h-full object-cover transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
-                    />
-
-                    {/* legibility gradient at the foot of every tile */}
-                    <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-background/85 via-background/20 to-transparent" />
-
-                    {p.tag && (
-                      <span className="absolute top-3 left-3 md:top-4 md:left-4 text-[9px] font-bold tracking-[0.25em] uppercase bg-primary text-text-dark px-2 py-[3px]">
-                        {p.tag}
-                      </span>
-                    )}
-
-                    {/* corner arrow appears on hover */}
-                    <span className="absolute top-3 right-3 md:top-4 md:right-4 w-8 h-8 border border-primary/20 bg-background/30 backdrop-blur-sm flex items-center justify-center text-primary/60 opacity-0 -translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
-                      <ArrowUpRight size={13} strokeWidth={2} />
-                    </span>
-
-                    <div className="absolute inset-x-0 bottom-0 p-3 md:p-4 flex items-end justify-between gap-3">
-                      <div>
-                        <p className="text-[9px] tracking-[0.2em] uppercase text-primary/50 mb-1">
-                          {p.category}
-                        </p>
-                        <p className={`font-bold tracking-[0.06em] uppercase leading-tight ${big ? 'text-[15px] md:text-[19px]' : 'text-[12px] md:text-[13px]'}`}>
-                          {p.name}
-                        </p>
-                      </div>
-                      <p className={`text-muted tracking-[0.03em] shrink-0 ${big ? 'text-[14px] md:text-[16px]' : 'text-[12px]'}`}>
-                        {formatPrice(p.price, p.price_ghs)}
-                      </p>
-                    </div>
-                  </Link>
+                  <ProductCard p={p} big={big} />
                 </Reveal>
               )
             })}

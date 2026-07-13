@@ -127,19 +127,19 @@ export default function ProductDetail() {
                     className={`shrink-0 w-14 md:w-full aspect-[3/4] overflow-hidden border-2 transition-all duration-150
                       ${activeImg === i ? 'border-primary' : 'border-transparent opacity-50 hover:opacity-80'}`}
                   >
-                    <ProductImage src={img.url} alt="" wrapperClassName="w-full h-full" className="w-full h-full object-cover" />
+                    <ProductImage src={img.url} alt="" wrapperClassName="w-full h-full product-backdrop" className="w-full h-full object-contain p-1.5" />
                   </button>
                 ))}
               </div>
             )}
 
-            {/* Main image */}
+            {/* Main image — transparent PNG centered on the solid site bg with fixed padding */}
             <div className="flex-1 aspect-[4/5] relative overflow-hidden">
               <ProductImage
                 src={product.images?.[activeImg]?.url || product.image}
                 alt={product.name}
-                wrapperClassName="w-full h-full"
-                className="w-full h-full object-cover"
+                wrapperClassName="w-full h-full product-backdrop"
+                className="w-full h-full object-contain p-6 md:p-10"
               />
               {product.tag && (
                 <span className="absolute top-4 left-4 md:top-6 md:left-6 text-[9px] font-bold tracking-[0.25em] uppercase bg-primary text-text-dark px-2 md:px-3 py-1">
@@ -281,8 +281,8 @@ export default function ProductDetail() {
                   <ProductImage
                     src={p.image}
                     alt={p.name}
-                    wrapperClassName="w-full h-full"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    wrapperClassName="w-full h-full product-backdrop"
+                    className="w-full h-full object-contain p-3 md:p-4 transition-transform duration-500 group-hover:scale-105"
                   />
                   {p.tag && (
                     <span className="absolute top-3 left-3 md:top-4 md:left-4 text-[8px] md:text-[9px] font-bold tracking-[0.25em] uppercase bg-primary text-text-dark px-1.5 md:px-2 py-[2px] md:py-[3px]">
