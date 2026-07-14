@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Eye } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import { api } from '../../lib/api'
 import ProductImage from '../../components/ProductImage'
 import { useAuth } from '../../context/AuthContext'
@@ -9,9 +9,15 @@ import {
   ProductTag, StatusTag, IconButton, Modal, ConfirmDialog,
 } from '../../admin/ui'
 
+// The products API defaults to page_size=10 and silently truncates past it —
+// the list MUST paginate or products beyond the first page become unreachable.
+const PAGE_SIZE = 20
+
 export default function AdminProducts() {
   const { canManage } = useAuth()
   const [products, setProducts] = useState([])
+  const [total,    setTotal]    = useState(0)
+  const [page,     setPage]     = useState(1)
   const [loading,  setLoading]  = useState(true)
   const [deleting, setDeleting] = useState(null)
   const [confirm,  setConfirm]  = useState(null)
@@ -19,7 +25,9 @@ export default function AdminProducts() {
   const [viewProduct, setViewProduct] = useState(null)
   const [activeImg,   setActiveImg]   = useState(0)
 
-  useEffect(() => { fetchProducts() }, [])
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  useEffect(() => { fetchProducts(page) }, [page])
 
   useEffect(() => {
     if (!viewProduct) return
@@ -28,12 +36,13 @@ export default function AdminProducts() {
     return () => window.removeEventListener('keydown', onKey)
   }, [viewProduct])
 
-  async function fetchProducts() {
+  async function fetchProducts(p = 1) {
     setLoading(true)
     try {
-      const res  = await api.getProducts()
+      const res  = await api.getProducts({ page: p, page_size: PAGE_SIZE })
       const data = await res.json()
       setProducts(data.products || [])
+      setTotal(data.total ?? (data.products?.length || 0))
     } finally {
       setLoading(false)
     }
@@ -44,6 +53,9 @@ export default function AdminProducts() {
     try {
       await api.deleteProduct(id)
       setProducts(ps => ps.filter(p => p.id !== id))
+      setTotal(t => t - 1)
+      // If we just emptied a page past the first, step back one page
+      if (products.length === 1 && page > 1) setPage(pg => pg - 1)
     } finally {
       setDeleting(null)
       setConfirm(null)
@@ -116,6 +128,30 @@ export default function AdminProducts() {
               ))}
             </Tbody>
           </Table>
+
+          {/* ── Pagination footer — count is server total, not just this page ── */}
+          <div className="flex items-center justify-between px-4 py-3 border-t border-primary/10">
+            <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted">
+              {total} product{total === 1 ? '' : 's'}
+              {totalPages > 1 && <span className="text-muted/60"> — page {page} of {totalPages}</span>}
+            </p>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <IconButton
+                  icon={ChevronLeft}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  title="Previous page"
+                  disabled={page <= 1}
+                />
+                <IconButton
+                  icon={ChevronRight}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  title="Next page"
+                  disabled={page >= totalPages}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
