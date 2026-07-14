@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, ArrowRight, Loader2 } from 'lucide-react'
 import { useProducts } from '../context/productContextValue'
@@ -12,7 +13,14 @@ const marqueeItems = [
 export default function HomePage() {
   const { products, loading } = useProducts()
 
-  const featured = products.slice(0, 5)
+  // The drop shows the latest additions — API returns oldest-first (id asc),
+  // so sort by created_at desc here before taking the top 5.
+  const featured = useMemo(
+    () => [...products]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 5),
+    [products],
+  )
   const editorialImg =
     products[3]?.image || products[2]?.image || products[0]?.image || hero
 

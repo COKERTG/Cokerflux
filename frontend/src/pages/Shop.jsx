@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { ChevronDown, X, Loader2 } from 'lucide-react'
+import { useState, useMemo, useRef } from 'react'
+import { ChevronDown, X, Loader2, ArrowLeft, ArrowRight } from 'lucide-react'
 import { useProducts } from '../context/productContextValue'
 import ProductCard from '../components/ProductCard'
 
@@ -11,6 +11,11 @@ const SORT_OPTIONS = [
   { value: 'newest',     label: 'Newest'              },
 ]
 
+// Client-side pagination over the filtered list — filters/sort are client-side and
+// the whole catalog is already in ProductContext (page_size: 100). Once the catalog
+// approaches that cap, fetching + filtering must move server-side.
+const PAGE_SIZE = 20
+
 export default function Shop() {
   const { products, categories, loading, error } = useProducts()
 
@@ -21,6 +26,8 @@ export default function Shop() {
   const [sortBy, setSortBy]           = useState('default')
   const [showFilters, setShowFilters] = useState(false)
   const [sortOpen, setSortOpen]       = useState(false)
+  const [page, setPage]               = useState(1)
+  const gridTopRef                    = useRef(null)
 
   const activeFilterCount = useMemo(() => {
     let n = 0
@@ -43,6 +50,27 @@ export default function Shop() {
     if (sortBy === 'newest')     return [...list].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
     return list
   }, [products, active, selectedSizes, minPrice, maxPrice, sortBy])
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / PAGE_SIZE))
+
+  // Any filter/sort change reshuffles the list — snap back to page 1.
+  // Render-time adjustment (not an effect): https://react.dev/learn/you-might-not-need-an-effect
+  const filterKey = JSON.stringify([active, selectedSizes, minPrice, maxPrice, sortBy])
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey)
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey)
+    setPage(1)
+  }
+
+  const pageItems = useMemo(
+    () => visible.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [visible, page],
+  )
+
+  function goToPage(p) {
+    setPage(p)
+    gridTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   function toggleSize(s) {
     setSelectedSizes(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])
@@ -203,7 +231,7 @@ export default function Shop() {
       </div>
 
       {/* ══ Product grid — editorial, varied sizes ══ */}
-      <section className="px-4 md:px-16 py-8 md:py-12">
+      <section ref={gridTopRef} className="px-4 md:px-16 py-8 md:py-12 scroll-mt-[160px]">
         {loading ? (
           <div className="flex items-center justify-center py-32">
             <Loader2 size={24} className="animate-spin text-muted" />
@@ -252,19 +280,49 @@ export default function Shop() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[62vw] sm:auto-rows-[44vw] md:auto-rows-[22vw] gap-px bg-primary/10 grid-flow-row-dense">
-            {visible.map((p, i) => {
-              const big = isBig(i)
-              return (
-                <div
-                  key={p.id}
-                  className={big ? 'col-span-2 row-span-1 md:row-span-2' : 'col-span-1'}
-                >
-                  <ProductCard p={p} big={big} />
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[62vw] sm:auto-rows-[44vw] md:auto-rows-[22vw] gap-px bg-primary/10 grid-flow-row-dense">
+              {pageItems.map((p, i) => {
+                const big = isBig(i)
+                return (
+                  <div
+                    key={p.id}
+                    className={big ? 'col-span-2 row-span-1 md:row-span-2' : 'col-span-1'}
+                  >
+                    <ProductCard p={p} big={big} />
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* ══ Pagination — same page X of Y / prev-next pattern as admin, set in the storefront voice ══ */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-primary/10 mt-px pt-6 md:pt-8">
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-muted">
+                  {visible.length} pieces
+                  <span className="text-muted/50"> — page {page} of {totalPages}</span>
+                </p>
+                <div className="flex items-center gap-6 md:gap-8">
+                  <button
+                    onClick={() => goToPage(Math.max(1, page - 1))}
+                    disabled={page <= 1}
+                    className="group flex items-center gap-2 text-[11px] font-bold tracking-[0.25em] uppercase text-primary border-b border-primary/25 hover:border-primary pb-px transition-colors duration-200 disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    <ArrowLeft size={11} strokeWidth={2} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => goToPage(Math.min(totalPages, page + 1))}
+                    disabled={page >= totalPages}
+                    className="group flex items-center gap-2 text-[11px] font-bold tracking-[0.25em] uppercase text-primary border-b border-primary/25 hover:border-primary pb-px transition-colors duration-200 disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Next
+                    <ArrowRight size={11} strokeWidth={2} className="transition-transform duration-200 group-hover:translate-x-0.5" />
+                  </button>
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            )}
+          </>
         )}
       </section>
 
